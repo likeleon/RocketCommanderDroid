@@ -12,7 +12,6 @@ namespace likeleon
 
 	void EventLoop::run(ActivityHandler* pActivityHandler)
 	{
-		int32_t result;
 		int32_t events;
 		android_poll_source* source;
 
@@ -22,9 +21,10 @@ namespace likeleon
 		likeleon::Log::info("Starting event loop");
 		while (true)
 		{
-			result = ALooper_pollAll(m_enabled ? 0 : -1, NULL, &events, (void**)&source);
-			while (result >= 0)
+			while (ALooper_pollAll(m_enabled ? 0 : -1, NULL, &events, (void**)&source) >= 0)
 			{
+				likeleon::Log::info("pollAll returned positive value");
+
 				if (source != NULL)
 				{
 					likeleon::Log::info("Processing an event");

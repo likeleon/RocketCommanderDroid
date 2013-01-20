@@ -1,5 +1,5 @@
-#ifndef _EVENT_LOOP_H_
-#define _EVENT_LOOP_H_
+#ifndef _EVENT_LOOP_HPP_
+#define _EVENT_LOOP_HPP_
 
 #include "ActivityHandler.hpp"
 #include "Types.hpp"
