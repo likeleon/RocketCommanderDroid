@@ -1,6 +1,7 @@
 #ifndef _EVENT_LOOP_H_
 #define _EVENT_LOOP_H_
 
+#include "ActivityHandler.hpp"
 #include "Types.hpp"
 #include <android_native_app_glue.h>
 
@@ -10,9 +11,21 @@ namespace likeleon
 	{
 	public:
 		EventLoop(android_app* pApplication);
-		void run();
+		void run(ActivityHandler* pActivityHandler);
+
+	protected:
+		void activate();
+		void deactivate();
+
+		void processAppEvent(int32_t pCommand);
 
 	private:
+		static void callback_event(android_app* pApplication, int32_t pCommand);
+
+	private:
+		bool m_enabled;
+		bool m_quit;
+		ActivityHandler* m_pActivityHandler;
 		android_app* m_pApplication;
 	};
 }
