@@ -22,7 +22,7 @@ namespace likeleon
 		likeleon::Log::info("Starting event loop");
 		while (true)
 		{
-			result = ALooper_pollOnce(m_enabled ? 0 : -1, NULL, &events, (void**)&source);
+			result = ALooper_pollAll(m_enabled ? 0 : -1, NULL, &events, (void**)&source);
 			while (result >= 0)
 			{
 				if (source != NULL)
@@ -42,6 +42,7 @@ namespace likeleon
 				if (m_pActivityHandler->onStep() != STATUS_OK)
 				{
 					m_quit = true;
+
 					ANativeActivity_finish(m_pApplication->activity);
 				}
 			}
