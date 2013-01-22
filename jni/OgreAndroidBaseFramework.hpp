@@ -16,7 +16,7 @@ namespace likeleon
 		virtual ~OgreAndroidBaseFramework();
 
 		bool initOgreRoot();
-		void initRenderWindow(unsigned int windowHandle, unsigned int width, unsigned int height, unsigned int contextHandle);
+		void initRenderWindow(void* pWindow, void* pConfig);
 		void destroyRenderWindow();
 		Ogre::RenderWindow* getRenderWindow();
 		void renderOneFrame();

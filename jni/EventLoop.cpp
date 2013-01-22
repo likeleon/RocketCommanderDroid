@@ -18,6 +18,8 @@ namespace likeleon
 		app_dummy();
 		m_pActivityHandler = pActivityHandler;
 
+		m_pActivityHandler->onInit();
+
 		likeleon::Log::info("Starting event loop");
 		while (true)
 		{

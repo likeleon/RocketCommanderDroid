@@ -1,5 +1,6 @@
 #include "OgreAndroidBaseFramework.hpp"
 #include "AndroidLogListener.hpp"
+#include "Log.hpp"
 
 namespace likeleon
 {
@@ -33,12 +34,6 @@ namespace likeleon
 	{
 		try
 		{
-			// Create logs that funnel to android logs
-			m_pLogManager = OGRE_NEW Ogre::LogManager();
-			Ogre::Log* pLog = m_pLogManager->createLog("AndroidLog", true, true, true);
-			m_pAndroidLogListener = new AndroidLogListener();
-			pLog->addListener(m_pAndroidLogListener);
-
 			// Create a root object
 			m_pRoot = new Ogre::Root("", "", "");
 
@@ -95,15 +90,21 @@ namespace likeleon
 		return true;
 	}
 
-	void OgreAndroidBaseFramework::initRenderWindow(unsigned int windowHandle, unsigned int width, unsigned int height, unsigned int contextHandle)
+	void OgreAndroidBaseFramework::initRenderWindow(void* pWindow, void* pConfig)
 	{
-		if (m_pRenderWindow)
+		if (!m_pRenderWindow)
 		{
 			Ogre::NameValuePairList params;
-			params["externalWindowHandle"] = Ogre::StringConverter::toString(windowHandle);
-			params["externalGLContext"] = Ogre::StringConverter::toString(contextHandle);
+			params["externalWindowHandle"] = Ogre::StringConverter::toString((int)pWindow);
+			params["androidConfig"] = Ogre::StringConverter::toString((int)pConfig);
 
-			m_pRenderWindow = m_pRoot->createRenderWindow("OgreAndroidPrimary", width, height, true, &params);
+			m_pRenderWindow = m_pRoot->createRenderWindow("OgreAndroidPrimary", 0, 0, false, &params);
+
+			Ogre::SceneManager* pSceneMgr = m_pRoot->createSceneManager(Ogre::ST_GENERIC);
+			Ogre::Camera* pCamera = pSceneMgr->createCamera("Camera");
+			pCamera->setNearClipDistance(5);
+			Ogre::Viewport* pViewport = m_pRenderWindow->addViewport(pCamera);
+			pViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 1));
 		}
 	}
 }

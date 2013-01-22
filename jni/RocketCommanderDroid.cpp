@@ -1,13 +1,14 @@
 #include "RocketCommanderDroid.hpp"
+#include "OgreAndroidBaseFramework.hpp"
 #include "Log.hpp"
-
 #include <math.h>
+#include <EGL/egl.h>
+#include "Android/OgreAndroidEGLWindow.h"
 
 namespace rcd
 {
 	RocketCommanderDroid::RocketCommanderDroid(likeleon::Context& context, android_app* pApplication)
-	: m_pApplication(pApplication), m_pTimeService(context.m_pTimeService), m_initialized(false)
-	, m_posX(0), m_posY(0), m_size(24), m_speed(100.0f)
+	: m_pApplication(pApplication), m_initialized(false)
 	{
 		likeleon::Log::info("Creating RocketCommanderDroid");
 	}
@@ -17,27 +18,36 @@ namespace rcd
 		likeleon::Log::info("Destructing RocketCommanderDroid");
 	}
 
+	void RocketCommanderDroid::onInit()
+	{
+		likeleon::Log::info("Initializing RocketCommanderDroid");
+
+		if (m_initialized)
+			return;
+
+		new likeleon::OgreAndroidBaseFramework();
+
+		if (!likeleon::OgreAndroidBaseFramework::getSingletonPtr()->initOgreRoot())
+			return;
+
+		m_initialized = true;
+	}
+
+	void RocketCommanderDroid::onDestroy()
+	{
+		likeleon::Log::info("Destroying RocketCommanderDroid");
+
+		if (!m_initialized)
+			return;
+
+		m_initialized = false;
+
+		delete likeleon::OgreAndroidBaseFramework::getSingletonPtr();
+	}
+
 	likeleon::status RocketCommanderDroid::onActivate()
 	{
 		likeleon::Log::info("Activating RocketCommanderDroid");
-		m_pTimeService->reset();
-
-		ANativeWindow* pWindow = m_pApplication->window;
-		if (ANativeWindow_setBuffersGeometry(pWindow, 0, 0, WINDOW_FORMAT_RGBX_8888) < 0)
-			return likeleon::STATUS_KO;
-
-		if (ANativeWindow_lock(pWindow, &m_windowBuffer, NULL) >= 0)
-			ANativeWindow_unlockAndPost(pWindow);
-		else
-			return likeleon::STATUS_KO;
-
-		if (!m_initialized)
-		{
-			m_posX = m_windowBuffer.width / 2;
-			m_posY = m_windowBuffer.height / 2;
-			m_initialized = true;
-		}
-
 		return likeleon::STATUS_OK;
 	}
 
@@ -48,46 +58,44 @@ namespace rcd
 
 	likeleon::status RocketCommanderDroid::onStep()
 	{
-		m_pTimeService->update();
+		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
+		if (pFramework)
+			pFramework->renderOneFrame();
 
-		m_posX = fmod(m_posX + m_speed * m_pTimeService->elapsed(), m_windowBuffer.width);
+		return likeleon::STATUS_OK;
+	}
 
-		ANativeWindow* pWindow = m_pApplication->window;
-		if (ANativeWindow_lock(pWindow, &m_windowBuffer, NULL) >= 0)
+	void RocketCommanderDroid::onCreateWindow()
+	{
+		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
+
+		if (!m_pApplication->window || !pFramework)
+			return;
+
+		AConfiguration* pConfig = AConfiguration_new();
+		AConfiguration_fromAssetManager(pConfig, m_pApplication->activity->assetManager);
+
+		Ogre::RenderWindow* pRenderWindow = pFramework->getRenderWindow();
+		if (!pRenderWindow)
 		{
-			clear();
-			drawCursor(m_size, m_posX, m_posY);
-			ANativeWindow_unlockAndPost(pWindow);
-			return likeleon::STATUS_OK;
+			pFramework->initRenderWindow(m_pApplication->window, pConfig);
 		}
 		else
 		{
-			return likeleon::STATUS_KO;
+			static_cast<Ogre::AndroidEGLWindow*>(pRenderWindow)->_createInternalResources(m_pApplication->window, pConfig);
 		}
+
+		AConfiguration_delete(pConfig);
 	}
 
-	void RocketCommanderDroid::clear()
+	void RocketCommanderDroid::onDestroyWindow()
 	{
-		memset(m_windowBuffer.bits, 0, m_windowBuffer.stride * m_windowBuffer.height * sizeof(uint32_t*));
-	}
+		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
+		if (!pFramework)
+			return;
 
-	void RocketCommanderDroid::drawCursor(int size, int x, int y)
-	{
-		const int halfSize = size / 2;
-
-		const int upLeftX = x - halfSize;
-		const int upLeftY = y - halfSize;
-		const int downRightX = x + halfSize;
-		const int downRightY = y + halfSize;
-
-		uint32_t* pLine = ((uint32_t*)m_windowBuffer.bits) + (m_windowBuffer.stride * upLeftY);
-		for (int iy = upLeftY; iy <= downRightY; ++iy)
-		{
-			for (int ix = upLeftX; ix <= downRightX; ++ix)
-			{
-				pLine[ix] = 255;
-			}
-			pLine = pLine + m_windowBuffer.stride;
-		}
+		Ogre::RenderWindow* pRenderWindow = pFramework->getRenderWindow();
+		if (pRenderWindow)
+			static_cast<Ogre::AndroidEGLWindow*>(pRenderWindow)->_destroyInternalResources();
 	}
 }

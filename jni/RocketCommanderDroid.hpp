@@ -15,26 +15,20 @@ namespace rcd
 		RocketCommanderDroid(likeleon::Context& context, android_app* pApplication);
 		~RocketCommanderDroid();
 
-	protected:
-		likeleon::status onActivate();
-		void onDeactivate();
-		likeleon::status onStep();
-
 	private:
-		void clear();
-		void drawCursor(int pSize, int pX, int pY);
+		// likeleon::ActivityHandler
+		virtual likeleon::status onActivate();
+		virtual void onDeactivate();
+		virtual likeleon::status onStep();
+
+		virtual void onInit();
+		virtual void onDestroy();
+		virtual void onCreateWindow();
+		virtual void onDestroyWindow();
 
 	private:
 		android_app* m_pApplication;
-		ANativeWindow_Buffer m_windowBuffer;
-		likeleon::TimeService* m_pTimeService;
-
 		bool m_initialized;
-
-		float m_posX;
-		float m_posY;
-		const int32_t m_size;
-		const float m_speed;
 	};
 }
 

@@ -6,7 +6,7 @@ LOCAL_MODULE    := rocketcommanderdroid
 LOCAL_C_INCLUDES := $(OGRE_ROOT)/build/include \
 					$(OGRE_ROOT)/OgreMain/include \
 					$(OGRE_ROOT)/RenderSystems/GLES2/include \
-					$(OGRE_ROOT)/RenderSystems/GLES2/include/Android
+					$(OGRE_ROOT)/RenderSystems/GLES2/include/EGL
 
 LOCAL_CFLAGS := -DGL_GLEXT_PROTOTYPES=1
 LOCAL_CFLAGS += -fexceptions -frtti -x c++ -D___ANDROID___ -DANDROID -DZZIP_OMIT_CONFIG_H -DUSE_RTSHADER_SYSTEM=1

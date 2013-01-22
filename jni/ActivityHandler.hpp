@@ -14,6 +14,7 @@ namespace likeleon
 		virtual void onDeactivate() = 0;
 		virtual status onStep() = 0;
 
+		virtual void onInit() {}
 		virtual void onStart() {};
 		virtual void onResume() {};
 		virtual void onPause() {};
