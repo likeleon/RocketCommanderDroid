@@ -1,0 +1,11 @@
+// Parallax mapping vertex program
+vertex_program RocketCommander/ParallaxMappingVP glsles
+{
+	source ParallaxMappingVP.glsles
+}
+
+// Parallax mapping fragment program
+fragment_program RocketCommander/ParallaxMappingFP glsles
+{
+	source ParallaxMappingFP.glsles
+}

@@ -2,8 +2,12 @@
 #define _OGRE_ANDROID_BASE_FRAMEWORK_HPP_
 
 #include <Ogre.h>
-#include <OgreGLES2Plugin.h>
 #include <OgreRenderTargetListener.h>
+
+namespace Ogre
+{
+	class StaticPluginLoader;
+}
 
 namespace likeleon
 {
@@ -18,7 +22,9 @@ namespace likeleon
 		bool initOgreRoot();
 		void initRenderWindow(void* pWindow, void* pConfig);
 		void destroyRenderWindow();
+
 		Ogre::RenderWindow* getRenderWindow();
+		Ogre::Root* getOgreRoot();
 		void renderOneFrame();
 
 		static OgreAndroidBaseFramework* getSingletonPtr();
@@ -27,10 +33,8 @@ namespace likeleon
 
 	private:
 		Ogre::Root* m_pRoot;
-		Ogre::GLES2Plugin* m_pGles2Plugin;
+		Ogre::StaticPluginLoader* m_pStaticPluginLoader;
 		Ogre::RenderWindow* m_pRenderWindow;
-		AndroidLogListener* m_pAndroidLogListener;
-		Ogre::LogManager* m_pLogManager;
 		Ogre::Timer m_timer;
 
 		unsigned long m_lastTime;

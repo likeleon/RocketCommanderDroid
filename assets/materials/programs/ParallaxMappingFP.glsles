@@ -1,0 +1,51 @@
+#version 100
+precision mediump int;
+precision mediump float;
+
+uniform sampler2D diffuseMap;
+uniform sampler2D heightMap;
+uniform sampler2D normalMap;
+
+varying vec4 oPosition;
+varying vec2 oUv0;
+varying vec3 oLightDir;
+varying vec3 oEyeDir;
+varying float oBackFaceFactor;
+
+uniform float parallaxAmount;
+uniform vec4 lightAmbient;
+uniform vec4 lightDiffuse;
+uniform vec4 lightSpecular;
+uniform float shininess;
+
+// Basic fragment program to display 3d uv
+void main()
+{
+	// Get height from normal map alpha channel
+	vec2 height = texture2D(heightMap, oUv0).ag;
+    
+	// Calculate parallax offset
+	vec3 eyeDir = normalize(oEyeDir);
+	vec2 offsetTexCoord = oUv0 + (height * parallaxAmount - parallaxAmount * 0.5) * eyeDir.xy;
+	
+	// Grab texture data
+	vec4 diffuseTexture = texture2D(diffuseMap, offsetTexCoord);
+	vec3 normalVector = (2.0 * texture2D(normalMap, offsetTexCoord).agb) - 1.0;
+	// Normalize normal to fix blocky errors
+	normalVector = normalize(normalVector);
+	
+	// Additionally normalize the vectors
+	vec3 lightVector = normalize(oLightDir);
+	// Compute the angle to the light
+	float bump = dot(normalVector, lightVector);
+	// Specular factor
+	vec3 reflect = normalize(2.0 * bump * normalVector - lightVector);
+	float spec = pow(clamp(dot(reflect, eyeDir), 0.0, 1.0), shininess);
+	
+	// Darken down bump factor on back faces
+	bump = bump * oBackFaceFactor;
+	
+	vec4 ambDiffColor = lightAmbient + bump * lightDiffuse;
+	gl_FragColor.rgb = (diffuseTexture * ambDiffColor + (height.x * 0.5) * bump * spec * lightSpecular * diffuseTexture.a).rgb;
+	gl_FragColor.a = diffuseTexture.a * lightDiffuse.a;
+}
