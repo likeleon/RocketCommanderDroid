@@ -6,11 +6,12 @@
 #include "Android/OgreAndroidEGLWindow.h"
 #include "Android/OgreAPKFileSystemArchive.h"
 #include "Android/OgreAPKZipArchive.h"
+#include "Game.hpp"
 
 namespace rcd
 {
 	RocketCommanderDroid::RocketCommanderDroid(likeleon::Context& context, android_app* pApplication)
-	: m_pApplication(pApplication), m_initialized(false)
+	: m_pApplication(pApplication), m_initialized(false), m_pGame(NULL)
 	{
 		likeleon::Log::info("Creating RocketCommanderDroid");
 	}
@@ -27,9 +28,8 @@ namespace rcd
 		if (m_initialized)
 			return;
 
-		new likeleon::OgreAndroidBaseFramework();
-
-		if (!likeleon::OgreAndroidBaseFramework::getSingletonPtr()->initOgreRoot())
+		likeleon::OgreAndroidBaseFramework* pFramework = new likeleon::OgreAndroidBaseFramework();
+		if (!pFramework->initOgreRoot())
 			return;
 
 		m_initialized = true;
@@ -58,13 +58,8 @@ namespace rcd
 		likeleon::Log::info("Deactivating RocketCommanderDroid");
 	}
 
-	static Ogre::SceneNode* s_pLightPivot = NULL;
-
 	likeleon::status RocketCommanderDroid::onStep()
 	{
-		if (s_pLightPivot != NULL)
-			s_pLightPivot->yaw(Ogre::Degree((Ogre::Real)33 / 30));
-
 		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
 		if (pFramework)
 			pFramework->renderOneFrame();
@@ -138,51 +133,25 @@ namespace rcd
 
 		Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
-		// Create scene manager
-		Ogre::SceneManager* pSceneMgr = pFramework->getOgreRoot()->createSceneManager(Ogre::ST_GENERIC, "SceneManager");
-		pSceneMgr->setAmbientLight(Ogre::ColourValue::White);
-
-		// Light
-		Ogre::Light* pLight = pSceneMgr->createLight();
-		pLight->setPosition(0, 0, -150);
-		pLight->setDiffuseColour(Ogre::ColourValue::Black);
-		pLight->setSpecularColour(Ogre::ColourValue::Black);
-
-		s_pLightPivot = pSceneMgr->getRootSceneNode()->createChildSceneNode();
-		s_pLightPivot->attachObject(pLight);
-
-		// Camera
-		Ogre::Camera* pCamera = pSceneMgr->createCamera("Camera");
-		pCamera->setPosition(0, 0, -280);
-		pCamera->lookAt(0, 0, 0);
-		pCamera->setNearClipDistance(0.1);
-		pCamera->setFarClipDistance(50000);
-
-		// Viewport
-		Ogre::Viewport* pViewport = pFramework->getRenderWindow()->addViewport(pCamera);
-		pViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
-		pCamera->setAspectRatio(Ogre::Real(pViewport->getActualWidth()) / Ogre::Real(pViewport->getActualHeight()));
-		pViewport->setCamera(pCamera);
-
-		// Skybox
-		pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", 10, true);
-
-		// Mesh
-		pSceneMgr->createEntity("rocket", "rocket.mesh");
-		Ogre::SceneNode* pMeshNode = pSceneMgr->getRootSceneNode()->createChildSceneNode();
-		pMeshNode->attachObject(pSceneMgr->getEntity("rocket"));
-		pMeshNode->scale(0.5, 0.5, 0.5);
-		pMeshNode->yaw(Ogre::Radian(Ogre::Math::PI / 2.0f));
+		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow());
+		m_pGame->Initialize();
 	}
 
 	void RocketCommanderDroid::onDestroyWindow()
 	{
-		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
-		if (!pFramework)
-			return;
+		if (m_pGame)
+		{
+			m_pGame->Cleanup();
+			delete m_pGame;
+			m_pGame = NULL;
+		}
 
-		Ogre::RenderWindow* pRenderWindow = pFramework->getRenderWindow();
-		if (pRenderWindow)
-			static_cast<Ogre::AndroidEGLWindow*>(pRenderWindow)->_destroyInternalResources();
+		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
+		if (pFramework)
+		{
+			Ogre::RenderWindow* pRenderWindow = pFramework->getRenderWindow();
+			if (pRenderWindow)
+				static_cast<Ogre::AndroidEGLWindow*>(pRenderWindow)->_destroyInternalResources();
+		}
 	}
 }

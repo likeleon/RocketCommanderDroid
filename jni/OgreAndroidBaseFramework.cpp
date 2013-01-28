@@ -103,8 +103,6 @@ namespace likeleon
 			m_pRoot->initialise(false);
 
 			m_lastTime = m_timer.getMilliseconds();
-
-			m_pRoot->addFrameListener(this);
 			return true;
 
 		}
@@ -139,11 +137,6 @@ namespace likeleon
 	void OgreAndroidBaseFramework::renderOneFrame()
 	{
 		m_pRoot->renderOneFrame();
-	}
-
-	bool OgreAndroidBaseFramework::frameRenderingQueued(const Ogre::FrameEvent& evt)
-	{
-		return true;
 	}
 
 	void OgreAndroidBaseFramework::initRenderWindow(void* pWindow, void* pConfig)

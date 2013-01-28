@@ -13,7 +13,7 @@ namespace likeleon
 {
 	class AndroidLogListener;
 
-	class OgreAndroidBaseFramework : public Ogre::Singleton<OgreAndroidBaseFramework>, Ogre::FrameListener
+	class OgreAndroidBaseFramework : public Ogre::Singleton<OgreAndroidBaseFramework>
 	{
 	public:
 		OgreAndroidBaseFramework();
@@ -28,8 +28,6 @@ namespace likeleon
 		void renderOneFrame();
 
 		static OgreAndroidBaseFramework* getSingletonPtr();
-
-		bool frameRenderingQueued(const Ogre::FrameEvent& evt);
 
 	private:
 		Ogre::Root* m_pRoot;

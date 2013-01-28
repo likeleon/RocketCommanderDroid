@@ -9,6 +9,8 @@
 
 namespace rcd
 {
+	class Game;
+
 	class RocketCommanderDroid : public likeleon::ActivityHandler
 	{
 	public:
@@ -29,6 +31,7 @@ namespace rcd
 	private:
 		android_app* m_pApplication;
 		bool m_initialized;
+		Game* m_pGame;
 	};
 }
 
