@@ -1,11 +1,20 @@
 #include "Game.hpp"
 #include "Log.hpp"
+#include "GameAsteroidManager.hpp"
+#include "IGameScreen.hpp"
+#include "MainMenuScreen.hpp"
+#include "SpaceCamera.hpp"
 
 namespace rcd
 {
+	const Ogre::Radian Game::FieldOfView = Ogre::Radian(Ogre::Math::PI / 1.8f);
+	const Ogre::Real Game::NearPlane = GameAsteroidManager::GetMinViewDepth();
+	const Ogre::Real Game::FarPlane = GameAsteroidManager::GetMaxViewDepth();
+
 	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow)
 	: m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL)
-	, m_pCamera(NULL), m_pViewport(NULL), m_pMeshNode(NULL), m_pLightNode(NULL)
+	, m_pCamera(NULL), m_pViewport(NULL)
+	, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_inGame(false)
 	{
 	}
 
@@ -24,47 +33,72 @@ namespace rcd
 
 		// Light
 		m_pLight = m_pSceneMgr->createLight();
-		m_pLight->setPosition(0, 0, -150);
-		m_pLight->setDiffuseColour(Ogre::ColourValue::Black);
-		m_pLight->setSpecularColour(Ogre::ColourValue::Black);
+		m_pLight->setType(Ogre::Light::LT_DIRECTIONAL);
+		m_pLight->setDirection(1.0f, 0.0f, 0.0f);
 
-		m_pLightNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
-		m_pLightNode->attachObject(m_pLight);
+		// Space camera
+		m_pCamera = new SpaceCamera(*this, Ogre::Vector3(0, 0, -5));
+		GetCamera().setFOVy(FieldOfView);
+		GetCamera().setNearClipDistance(NearPlane);
+		GetCamera().setFarClipDistance(FarPlane);
+		GetCamera().setPosition(Ogre::Vector3(0, 0, 0));
 
-		// Camera
-		m_pCamera = m_pSceneMgr->createCamera("Camera");
-		m_pCamera->setPosition(0, 0, -280);
-		m_pCamera->lookAt(0, 0, 0);
-		m_pCamera->setNearClipDistance(0.1);
-		m_pCamera->setFarClipDistance(50000);
+		m_pViewport = m_renderWindow.addViewport(&GetCamera());
+		m_pViewport->setBackgroundColour(Ogre::ColourValue::Black);
 
-		// Viewport
-		m_pViewport = m_renderWindow.addViewport(m_pCamera);
-		m_pViewport->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
-		m_pCamera->setAspectRatio(Ogre::Real(m_pViewport->getActualWidth()) / Ogre::Real(m_pViewport->getActualHeight()));
-		m_pViewport->setCamera(m_pCamera);
+		GetCamera().setAspectRatio(Ogre::Real(m_pViewport->getActualWidth()) / Ogre::Real(m_pViewport->getActualHeight()));
+		m_pViewport->setCamera(&GetCamera());
 
 		// Skybox
-		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", 10, true);
+		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
 
-		// Mesh
-		m_pSceneMgr->createEntity("rocket", "rocket.mesh");
-		m_pMeshNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
-		m_pMeshNode->attachObject(m_pSceneMgr->getEntity("rocket"));
-		m_pMeshNode->scale(0.5, 0.5, 0.5);
-		m_pMeshNode->yaw(Ogre::Radian(Ogre::Math::PI / 2.0f));
+		// Main menu screen
+		AddGameScreen(new MainMenuScreen(*this));
 
 		m_ogreRoot.addFrameListener(this);
 	}
 
 	void Game::Update(double timeSinceLastFrame)
 	{
-		m_pLightNode->yaw(Ogre::Degree((Ogre::Real)timeSinceLastFrame / 30));
+		GetSpaceCamera().Update(timeSinceLastFrame);
+
+		// If that game screen should be quitted, remove it from stack
+		if (!m_gameScreens.empty() &&
+			m_gameScreens.top()->GetQuit())
+			ExitCurrentGameScreen();
+
+		// If no more game screens are left, it is time to quit
+		if (m_gameScreens.empty())
+			ExitGame();
+
+		try
+		{
+			// Execute the game screen on top
+			if (!m_gameScreens.empty())
+				m_gameScreens.top()->Run();
+		}
+		catch (std::exception &e)
+		{
+			likeleon::Log::error("Failed to execute %s\nError: %s", m_gameScreens.top()->GetName(), e.what());
+		}
+
+		m_elapsedTimeThisFrameInMs = (float)timeSinceLastFrame;
+		m_totalTimeMs += m_elapsedTimeThisFrameInMs;
+
+		// Make sure m_elapsedTimeThisFrameInMs is never 0
+		if (m_elapsedTimeThisFrameInMs <= 0)
+			m_elapsedTimeThisFrameInMs = 0.001f;
 	}
 
 	void Game::Cleanup()
 	{
 		likeleon::Log::info("Cleanup game");
+
+		while (!m_gameScreens.empty())
+		{
+			delete m_gameScreens.top();
+			m_gameScreens.pop();
+		}
 
 		if (m_pViewport)
 		{
@@ -105,5 +139,94 @@ namespace rcd
 	bool Game::frameEnded(const Ogre::FrameEvent& evt)
 	{
 		return !(m_renderWindow.isClosed());
+	}
+
+	Ogre::SceneManager& Game::GetSceneManager()
+	{
+		assert(m_pSceneMgr);
+		return *m_pSceneMgr;
+	}
+
+	float Game::GetMoveFactorPerSecond() const
+	{
+		return m_elapsedTimeThisFrameInMs / 1000.0f;
+	}
+
+	float Game::GetTotalTimeMs() const
+	{
+		return m_totalTimeMs;
+	}
+
+	SpaceCamera& Game::GetSpaceCamera()
+	{
+		assert(m_pCamera);
+		return *m_pCamera;
+	}
+
+	Ogre::Camera& Game::GetCamera()
+	{
+		return GetSpaceCamera().GetCamera();
+	}
+
+	void Game::AddGameScreen(IGameScreen *gameScreen)
+	{
+		assert(gameScreen);
+
+		if (!m_gameScreens.empty())
+		{
+			m_gameScreens.top()->Exit();
+		}
+		EnterGameScreen(gameScreen, true);
+	}
+
+	void Game::ChangeGameScreen(IGameScreen *gameScreen)
+	{
+		assert(gameScreen);
+		assert(!m_gameScreens.empty());
+
+		RemoveCurrentGameScreen();
+		EnterGameScreen(gameScreen, true);
+	}
+
+	void Game::EnterGameScreen(IGameScreen *gameScreen, bool push)
+	{
+		assert(gameScreen);
+
+		likeleon::Log::info("Entering game screen %s", gameScreen->GetName());
+
+		m_inGame = gameScreen->IsInGame();
+
+		// Space camera
+		GetSpaceCamera().SetInGame(m_inGame);
+
+		// Enter game screen
+		gameScreen->Enter();
+
+		if (push)
+			m_gameScreens.push(gameScreen);
+	}
+
+	void Game::ExitCurrentGameScreen()
+	{
+		RemoveCurrentGameScreen();
+
+		if (!m_gameScreens.empty())
+			EnterGameScreen(m_gameScreens.top(), false);
+	}
+
+	void Game::RemoveCurrentGameScreen()
+	{
+		assert(!m_gameScreens.empty());
+
+		likeleon::Log::info("Removing game screen %s", m_gameScreens.top()->GetName());
+
+		m_gameScreens.top()->Exit();
+		delete m_gameScreens.top();
+		m_gameScreens.pop();
+	}
+
+	void Game::ExitGame()
+	{
+		m_ogreRoot.queueEndRendering();
 	}
 }
