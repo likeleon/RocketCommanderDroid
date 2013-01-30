@@ -4,6 +4,7 @@
 #include "IGameScreen.hpp"
 #include "MainMenuScreen.hpp"
 #include "SpaceCamera.hpp"
+#include "Rocket.hpp"
 
 namespace rcd
 {
@@ -15,6 +16,7 @@ namespace rcd
 	: m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL)
 	, m_pCamera(NULL), m_pViewport(NULL)
 	, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_inGame(false)
+	, m_pRocket(NULL)
 	{
 	}
 
@@ -52,6 +54,9 @@ namespace rcd
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
 
+		// Rocket
+		m_pRocket = new Rocket(*m_pSceneMgr);
+
 		// Main menu screen
 		AddGameScreen(new MainMenuScreen(*this));
 
@@ -60,7 +65,22 @@ namespace rcd
 
 	void Game::Update(double timeSinceLastFrame)
 	{
+		using namespace Ogre;
+
 		GetSpaceCamera().Update(timeSinceLastFrame);
+
+		// Render rocket in front of view in menu mode
+		if (GetSpaceCamera().IsInGame() == false)
+		{
+			Vector3 inFrontOfCameraPos = Vector3(0, -1.33f, -2.5f);
+			inFrontOfCameraPos = GetCamera().getViewMatrix().inverse() * inFrontOfCameraPos;
+			m_pRocket->SetPosition(inFrontOfCameraPos);
+
+			const Quaternion rocketOrient = GetCamera().getOrientation() *
+				Quaternion(Radian(GetTotalTimeMs() / 8400.0f), Vector3::UNIT_Z) *
+				Quaternion(-Radian(Math::PI / 2.2f), Vector3::UNIT_X);
+			m_pRocket->SetOrientation(rocketOrient);
+		}
 
 		// If that game screen should be quitted, remove it from stack
 		if (!m_gameScreens.empty() &&
@@ -98,6 +118,12 @@ namespace rcd
 		{
 			delete m_gameScreens.top();
 			m_gameScreens.pop();
+		}
+
+		if (m_pRocket)
+		{
+			delete m_pRocket;
+			m_pRocket = NULL;
 		}
 
 		if (m_pViewport)
@@ -166,6 +192,12 @@ namespace rcd
 	Ogre::Camera& Game::GetCamera()
 	{
 		return GetSpaceCamera().GetCamera();
+	}
+
+	Rocket& Game::GetRocket()
+	{
+		assert(m_pRocket);
+		return *m_pRocket;
 	}
 
 	void Game::AddGameScreen(IGameScreen *gameScreen)

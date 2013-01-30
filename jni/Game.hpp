@@ -8,6 +8,7 @@ namespace rcd
 {
 	class IGameScreen;
 	class SpaceCamera;
+	class Rocket;
 
 	class Game : public Ogre::FrameListener
 	{
@@ -23,6 +24,7 @@ namespace rcd
 		Ogre::Camera& GetCamera();
 		float GetMoveFactorPerSecond() const;
 		float GetTotalTimeMs() const;
+		Rocket& GetRocket();
 
 		void AddGameScreen(IGameScreen *gameScreen);
 		void ChangeGameScreen(IGameScreen *gameScreen);
@@ -55,6 +57,8 @@ namespace rcd
 
 		std::stack<IGameScreen *> m_gameScreens;
 		bool m_inGame;
+
+		Rocket* m_pRocket;
 	};
 }
 
