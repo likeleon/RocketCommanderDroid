@@ -3,6 +3,12 @@
 
 #include "IGameScreen.hpp"
 
+namespace Ogre
+{
+	class Rectangle2D;
+	class SceneNode;
+}
+
 namespace rcd
 {
 	class Game;
@@ -16,13 +22,15 @@ namespace rcd
 		virtual const char* GetName() const { return "Main Menu"; }
 		virtual void Enter();
 		virtual bool GetQuit() const { return false; }
-		virtual void Exit() {}
+		virtual void Exit();
 		virtual void Run() {}
 		virtual bool IsInGame() const { return false; }
 
 	private:
 		Game& m_game;
 		bool m_resetCamera;
+		Ogre::Rectangle2D* m_pBackground;
+		Ogre::SceneNode* m_pBackgroundNode;
 	};
 }
 
