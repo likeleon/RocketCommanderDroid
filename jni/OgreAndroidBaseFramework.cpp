@@ -1,7 +1,8 @@
 #include "OgreAndroidBaseFramework.hpp"
 #include "AndroidLogListener.hpp"
 #include "Log.hpp"
-#include "OgrePlatform.h"
+#include <OgrePlatform.h>
+#include <OgreOverlaySystem.h>
 
 // Static plugins declaration section
 // Note that every entry in here adds an extra header / library dependency
@@ -62,13 +63,18 @@ namespace likeleon
 	}
 
 	OgreAndroidBaseFramework::OgreAndroidBaseFramework()
-	: m_pRoot(NULL), m_pStaticPluginLoader(NULL), m_pRenderWindow(NULL), m_lastTime(0)
+	: m_pRoot(NULL), m_pStaticPluginLoader(NULL), m_pRenderWindow(NULL), m_pOverlaySystem(NULL), m_lastTime(0)
 	{
 	}
 
 	OgreAndroidBaseFramework::~OgreAndroidBaseFramework()
 	{
 		destroyRenderWindow();
+
+		if (m_pOverlaySystem)
+		{
+			delete m_pOverlaySystem;
+		}
 
 		if (m_pRoot)
 		{
@@ -92,14 +98,15 @@ namespace likeleon
 			m_pStaticPluginLoader = new Ogre::StaticPluginLoader();
 			m_pStaticPluginLoader->load();
 
+			m_pOverlaySystem = new Ogre::OverlaySystem();
+
 			// Grab the available render systems
 			const Ogre::RenderSystemList& renderSystemList = m_pRoot->getAvailableRenderers();
 			if (renderSystemList.empty())
 				return false;
 
 			// Set the render system and init
-			Ogre::RenderSystem* pSystem = renderSystemList.front();
-			m_pRoot->setRenderSystem(pSystem);
+			m_pRoot->setRenderSystem(renderSystemList.at(0));
 			m_pRoot->initialise(false);
 
 			m_lastTime = m_timer.getMilliseconds();
@@ -132,6 +139,11 @@ namespace likeleon
 	Ogre::Root* OgreAndroidBaseFramework::getOgreRoot()
 	{
 		return m_pRoot;
+	}
+
+	Ogre::OverlaySystem* OgreAndroidBaseFramework::getOverlaySystem()
+	{
+		return m_pOverlaySystem;
 	}
 
 	void OgreAndroidBaseFramework::renderOneFrame()

@@ -7,6 +7,7 @@
 namespace Ogre
 {
 	class StaticPluginLoader;
+	class OverlaySystem;
 }
 
 namespace likeleon
@@ -25,6 +26,7 @@ namespace likeleon
 
 		Ogre::RenderWindow* getRenderWindow();
 		Ogre::Root* getOgreRoot();
+		Ogre::OverlaySystem* getOverlaySystem();
 		void renderOneFrame();
 
 		static OgreAndroidBaseFramework* getSingletonPtr();
@@ -33,6 +35,7 @@ namespace likeleon
 		Ogre::Root* m_pRoot;
 		Ogre::StaticPluginLoader* m_pStaticPluginLoader;
 		Ogre::RenderWindow* m_pRenderWindow;
+		Ogre::OverlaySystem* m_pOverlaySystem;
 		Ogre::Timer m_timer;
 
 		unsigned long m_lastTime;

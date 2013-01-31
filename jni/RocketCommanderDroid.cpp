@@ -131,9 +131,9 @@ namespace rcd
 			}
 		}
 
-		Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Essential");
 
-		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow());
+		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem());
 		m_pGame->Initialize();
 	}
 
