@@ -1,0 +1,5 @@
+import asteroid4 from "asteroid4.material"
+
+material asteroid4Low : asteroid4
+{
+}

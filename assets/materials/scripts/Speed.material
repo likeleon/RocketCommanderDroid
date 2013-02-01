@@ -1,0 +1,37 @@
+import RocketCommander/ParallaxMapping from "ParallaxMapping.material"
+
+material Speed : RocketCommander/ParallaxMapping
+{
+	technique
+	{
+		pass
+		{
+			fragment_program_ref RocketCommander/ParallaxMappingFP
+			{
+				param_named	lightDiffuse float4 1.0 1.0 1.0 1.0
+				param_named	lightAmbient float4 0.31 0.31 0.31 1.0
+				param_named	lightSpecular float4 1.0 1.0 1.0 1.0
+				param_named parallaxAmount float 0.033
+				param_named shininess float 24.0
+			}
+			
+			// Diffuse texture
+			texture_unit 0
+			{
+				texture warp.dds
+			}
+			
+			// Height texture
+			texture_unit 1
+			{
+				texture warpHeight.dds
+			}
+			
+			// Normal texture
+			texture_unit 2
+			{
+				texture warpNormal.dds
+			}
+		}
+	}
+}

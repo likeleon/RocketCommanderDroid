@@ -10,6 +10,7 @@ namespace rcd
 	class Level
 	{
 	public:
+		Level() {}
 		Level(AAssetManager& assetManager, const std::string& name, const std::string& levelFile);
 
 		const std::string& GetName() const { return m_name; }

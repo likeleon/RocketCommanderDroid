@@ -20,6 +20,8 @@ namespace rcd
 	class SpaceCamera;
 	class Rocket;
 	class ShaderGeneratorTechniqueResolverListener;
+	class GameAsteroidManager;
+	class Player;
 
 	class Game : public Ogre::FrameListener
 	{
@@ -37,6 +39,13 @@ namespace rcd
 		float GetTotalTimeMs() const;
 		Rocket& GetRocket();
 		const Level& GetLevel(int index) const;
+		GameAsteroidManager& GetAsteroidManager();
+		int GetTotalFrames() const;
+		float GetElapsedTimeThisFrameInMs() const;
+		Player& GetPlayer();
+
+		void SetLightDirection(const Ogre::Vector3 &lightDir);
+		void SetLightColour(const Ogre::ColourValue &lightColour);
 
 		void AddGameScreen(IGameScreen *gameScreen);
 		void ChangeGameScreen(IGameScreen *gameScreen);
@@ -78,12 +87,15 @@ namespace rcd
 
 		float m_elapsedTimeThisFrameInMs;
 		float m_totalTimeMs;
+		int m_totalFrameCount;
 
 		std::stack<IGameScreen *> m_gameScreens;
 		bool m_inGame;
 
 		Rocket* m_pRocket;
 		std::vector<Level> m_levels;
+		GameAsteroidManager* m_pAsteroidManager;
+		Player* m_pPlayer;
 	};
 }
 

@@ -9,6 +9,7 @@
 #include <OgreResourceGroupManager.h>
 #include <OgreRTShaderSystem.h>
 #include "ShaderGeneratorTechniqueResolverListener.hpp"
+#include "Player.hpp"
 
 namespace rcd
 {
@@ -19,8 +20,7 @@ namespace rcd
 	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager) :
 		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager)
 		, m_pCamera(NULL), m_pViewport(NULL), m_pTrayMgr(NULL), m_pShaderGenerator(NULL), m_pMaterialMgrListener(NULL)
-		, m_elapsedTimeThisFrameInMs(0.001f)
-		, m_totalTimeMs(0.0f), m_inGame(false), m_pRocket(NULL)
+		, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_totalFrameCount(0), m_inGame(false), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
 	{
 	}
 
@@ -36,7 +36,7 @@ namespace rcd
 		m_pTrayMgr = new OgreBites::SdkTrayManager("GameControls", &m_renderWindow,	m_inputContext);
 		m_pTrayMgr->showTrays();
 		m_pTrayMgr->hideCursor();
-		m_pTrayMgr->showFrameStats(OgreBites::TL_BOTTOMLEFT);
+		//m_pTrayMgr->showFrameStats(OgreBites::TL_BOTTOMLEFT);
 
 		CreateScene();
 
@@ -53,11 +53,17 @@ namespace rcd
 		m_ogreRoot.getRenderSystem()->_initRenderTargets();
 		m_ogreRoot.getSingleton().clearEventTimes();
 
+		// Player
+		m_pPlayer = new Player(*this);
+
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
 
 		// Load all available levels
 		m_levels = Level::LoadAllLevels(m_assetManager);
+
+		// Initialize asteroidmanager and use last available level.
+		m_pAsteroidManager = new GameAsteroidManager(*this, m_levels[m_levels.size() - 1]);
 
 		// Rocket
 		m_pRocket = new Rocket(*m_pSceneMgr);
@@ -220,15 +226,17 @@ namespace rcd
 		// Render rocket in front of view in menu mode
 		if (GetSpaceCamera().IsInGame() == false)
 		{
-			 Vector3 inFrontOfCameraPos = Vector3(0, -1.33f, -2.5f);
-			 inFrontOfCameraPos = GetCamera().getViewMatrix().inverse() * inFrontOfCameraPos;
-			 m_pRocket->SetPosition(inFrontOfCameraPos);
+			Vector3 inFrontOfCameraPos = Vector3(0, -1.33f, -2.5f);
+			inFrontOfCameraPos = GetCamera().getViewMatrix().inverse() * inFrontOfCameraPos;
+			m_pRocket->SetPosition(inFrontOfCameraPos);
 
-			 const Quaternion rocketOrient = GetCamera().getOrientation() *
-			 Quaternion(Radian(GetTotalTimeMs() / 8400.0f), Vector3::UNIT_Z) *
-			 Quaternion(-Radian(Math::PI / 2.2f), Vector3::UNIT_X);
-			 m_pRocket->SetOrientation(rocketOrient);
-		 }
+			const Quaternion rocketOrient = GetCamera().getOrientation() *
+			Quaternion(Radian(GetTotalTimeMs() / 8400.0f), Vector3::UNIT_Z) *
+			Quaternion(-Radian(Math::PI / 2.2f), Vector3::UNIT_X);
+			m_pRocket->SetOrientation(rocketOrient);
+		}
+
+		m_pAsteroidManager->Update();
 
 		// If that game screen should be quitted, remove it from stack
 		if (!m_gameScreens.empty() && m_gameScreens.top()->GetQuit())
@@ -255,6 +263,9 @@ namespace rcd
 		// Make sure m_elapsedTimeThisFrameInMs is never 0
 		if (m_elapsedTimeThisFrameInMs <= 0)
 			m_elapsedTimeThisFrameInMs = 0.001f;
+
+		// Increase frame counter
+		m_totalFrameCount++;
 	}
 
 	void Game::Cleanup()
@@ -273,10 +284,22 @@ namespace rcd
 			m_pRocket = NULL;
 		}
 
+		if (m_pAsteroidManager)
+		{
+			delete m_pAsteroidManager;
+			m_pAsteroidManager = NULL;
+		}
+
 		if (m_pTrayMgr)
 		{
 			delete m_pTrayMgr;
 			m_pTrayMgr = NULL;
+		}
+
+		if (m_pPlayer)
+		{
+			delete m_pPlayer;
+			m_pPlayer = NULL;
 		}
 
 		DestroyScene();
@@ -406,5 +429,40 @@ namespace rcd
 	const Level& Game::GetLevel(int index) const
 	{
 		return m_levels[index];
+	}
+
+	GameAsteroidManager& Game::GetAsteroidManager()
+	{
+		assert(m_pAsteroidManager);
+		return *m_pAsteroidManager;
+	}
+
+	void Game::SetLightDirection(const Ogre::Vector3 &lightDir)
+	{
+		assert(m_pLight);
+		m_pLight->setDirection(lightDir.normalisedCopy());
+	}
+
+	void Game::SetLightColour(const Ogre::ColourValue &lightColour)
+	{
+		assert(m_pLight);
+		m_pLight->setDiffuseColour(lightColour);
+		m_pLight->setSpecularColour(lightColour);
+	}
+
+	int Game::GetTotalFrames() const
+	{
+		return m_totalFrameCount;
+	}
+
+	float Game::GetElapsedTimeThisFrameInMs() const
+	{
+		return m_elapsedTimeThisFrameInMs;
+	}
+
+	Player& Game::GetPlayer()
+	{
+		assert(m_pPlayer);
+		return *m_pPlayer;
 	}
 }
