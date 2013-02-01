@@ -6,6 +6,8 @@
 #include <stack>
 #include "InputContext.h"
 #include <OgreRTShaderSystem.h>
+#include <vector>
+#include "Level.hpp"
 
 namespace OgreBites
 {
@@ -22,7 +24,7 @@ namespace rcd
 	class Game : public Ogre::FrameListener
 	{
 	public:
-		Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem);
+		Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager);
 		~Game();
 
 		void Initialize();
@@ -34,6 +36,7 @@ namespace rcd
 		float GetMoveFactorPerSecond() const;
 		float GetTotalTimeMs() const;
 		Rocket& GetRocket();
+		const Level& GetLevel(int index) const;
 
 		void AddGameScreen(IGameScreen *gameScreen);
 		void ChangeGameScreen(IGameScreen *gameScreen);
@@ -63,6 +66,7 @@ namespace rcd
 		Ogre::Root& m_ogreRoot;
 		Ogre::RenderWindow& m_renderWindow;
 		Ogre::OverlaySystem& m_overlaySystem;
+		AAssetManager& m_assetManager;
 		Ogre::SceneManager* m_pSceneMgr;
 		Ogre::Light* m_pLight;
 		SpaceCamera* m_pCamera;
@@ -79,6 +83,7 @@ namespace rcd
 		bool m_inGame;
 
 		Rocket* m_pRocket;
+		std::vector<Level> m_levels;
 	};
 }
 

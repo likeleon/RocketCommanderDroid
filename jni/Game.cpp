@@ -16,8 +16,8 @@ namespace rcd
 	const Ogre::Real Game::NearPlane = GameAsteroidManager::GetMinViewDepth();
 	const Ogre::Real Game::FarPlane = GameAsteroidManager::GetMaxViewDepth();
 
-	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem) :
-		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem)
+	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager) :
+		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager)
 		, m_pCamera(NULL), m_pViewport(NULL), m_pTrayMgr(NULL), m_pShaderGenerator(NULL), m_pMaterialMgrListener(NULL)
 		, m_elapsedTimeThisFrameInMs(0.001f)
 		, m_totalTimeMs(0.0f), m_inGame(false), m_pRocket(NULL)
@@ -55,6 +55,9 @@ namespace rcd
 
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
+
+		// Load all available levels
+		m_levels = Level::LoadAllLevels(m_assetManager);
 
 		// Rocket
 		m_pRocket = new Rocket(*m_pSceneMgr);
@@ -398,5 +401,10 @@ namespace rcd
 		m_pTrayMgr->showLoadingBar(1, 0);
 		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("GameResource");
 		m_pTrayMgr->hideLoadingBar();
+	}
+
+	const Level& Game::GetLevel(int index) const
+	{
+		return m_levels[index];
 	}
 }

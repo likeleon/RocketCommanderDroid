@@ -133,7 +133,7 @@ namespace rcd
 
 		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Essential");
 
-		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem());
+		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem(), *pAssetMgr);
 		m_pGame->Initialize();
 	}
 
