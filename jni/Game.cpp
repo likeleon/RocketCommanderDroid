@@ -10,6 +10,8 @@
 #include <OgreRTShaderSystem.h>
 #include "ShaderGeneratorTechniqueResolverListener.hpp"
 #include "Player.hpp"
+#include "Sprite.hpp"
+#include "LensFlare.hpp"
 
 namespace rcd
 {
@@ -20,7 +22,8 @@ namespace rcd
 	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager) :
 		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager)
 		, m_pCamera(NULL), m_pViewport(NULL), m_pTrayMgr(NULL), m_pShaderGenerator(NULL), m_pMaterialMgrListener(NULL)
-		, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_totalFrameCount(0), m_inGame(false), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
+		, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_totalFrameCount(0), m_inGame(false), m_pSprite(NULL)
+		, m_pLensFlare(NULL), m_remLensFlareColor(Ogre::ColourValue::White), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
 	{
 	}
 
@@ -55,6 +58,15 @@ namespace rcd
 
 		// Player
 		m_pPlayer = new Player(*this);
+
+		// Sprite
+		m_pSceneMgr->getRenderQueue()->getQueueGroup(Ogre::RENDER_QUEUE_MAIN + 1)->setShadowsEnabled(false);
+		m_pSprite = new Sprite();
+		m_pSprite->Init(m_pSceneMgr, m_pViewport, Ogre::RENDER_QUEUE_MAIN + 1, true);
+		m_pSprite->SetSpriteLocation("/sprites");
+
+		// Lens flare
+		m_pLensFlare = new LensFlare(*this, LensFlare::DefaultSunPos);
 
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
@@ -238,6 +250,8 @@ namespace rcd
 
 		m_pAsteroidManager->Update();
 
+		m_pLensFlare->Render(m_remLensFlareColor);
+
 		// If that game screen should be quitted, remove it from stack
 		if (!m_gameScreens.empty() && m_gameScreens.top()->GetQuit())
 			ExitCurrentGameScreen();
@@ -294,6 +308,19 @@ namespace rcd
 		{
 			delete m_pTrayMgr;
 			m_pTrayMgr = NULL;
+		}
+
+		if (m_pLensFlare)
+		{
+			delete m_pLensFlare;
+			m_pLensFlare = NULL;
+		}
+
+		if (m_pSprite)
+		{
+			m_pSprite->Shutdown();
+			delete m_pSprite;
+			m_pSprite = NULL;
 		}
 
 		if (m_pPlayer)
@@ -464,5 +491,44 @@ namespace rcd
 	{
 		assert(m_pPlayer);
 		return *m_pPlayer;
+	}
+
+	Ogre::Vector2 Game::Convert3DPointTo2D(const Ogre::Vector3 &point)
+	{
+		const Ogre::Vector3 worldView = GetCamera().getViewMatrix() * point;
+
+		// Homogeneous clip space, between -1, 1 is in frusttrum
+		const Ogre::Vector3 hcsPos = GetCamera().getProjectionMatrix() * worldView;
+
+		const float halfWidth = (float)GetWidth() / 2;
+		const float halfHeight = (float)GetHeight() / 2;
+		return Ogre::Vector2(halfWidth + halfWidth * hcsPos.x,
+			halfHeight + halfHeight * (-hcsPos.y));
+	}
+
+	bool Game::IsInFrontOfCamera(const Ogre::Vector3 &point)
+	{
+		// Not work, why?
+		const Ogre::Matrix4 viewProjMatrix = GetCamera().getViewMatrix() * GetCamera().getProjectionMatrix();
+		Ogre::Vector4 result = Ogre::Vector4(point.x, point.y, point.z, 1) * viewProjMatrix;
+
+		// Is result in front?
+		return result.z > result.w - GetCamera().getNearClipDistance();
+
+		/*const Ogre::Vector3 eyeSpacePos = GetCamera().getViewMatrix() * point;
+		if (eyeSpacePos.z >= 0)
+			return false;
+
+		const Ogre::Vector3 hcsPos = GetCamera().getProjectionMatrix() * eyeSpacePos;
+		if ((hcsPos.x < -1.0f) || (hcsPos.x > 1.0f) || (hcsPos.y < -1.0f) || (hcsPos.y > 1.0f))
+			return false;
+
+		return true;*/
+	}
+
+	Sprite& Game::GetSprite()
+	{
+		assert(m_pSprite);
+		return *m_pSprite;
 	}
 }

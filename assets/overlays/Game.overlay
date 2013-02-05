@@ -1,0 +1,23 @@
+MainMenuOverlay
+{
+	container Panel(MainMenu/Panel)
+	{
+		metrics_mode relative
+		width 1.0
+		height 1.0
+		transparent true
+
+		element TextArea(TouchText)
+		{
+	        metrics_mode pixels
+	        font_name SdkTrays/Value
+	        horz_align center
+	        vert_align center
+	        alignment center
+	        char_height 50
+	        space_width 8
+	        colour 1 1 1
+	        caption Touch to Start
+		}
+	}
+}

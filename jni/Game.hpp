@@ -22,6 +22,8 @@ namespace rcd
 	class ShaderGeneratorTechniqueResolverListener;
 	class GameAsteroidManager;
 	class Player;
+	class Sprite;
+	class LensFlare;
 
 	class Game : public Ogre::FrameListener
 	{
@@ -43,9 +45,18 @@ namespace rcd
 		int GetTotalFrames() const;
 		float GetElapsedTimeThisFrameInMs() const;
 		Player& GetPlayer();
+		Sprite& GetSprite();
 
+		void SetLensFlareColour(const Ogre::ColourValue &colour) { m_remLensFlareColor = colour; }
 		void SetLightDirection(const Ogre::Vector3 &lightDir);
 		void SetLightColour(const Ogre::ColourValue &lightColour);
+
+		// Viewport size
+		int GetWidth() const { return m_pViewport->getActualWidth(); }
+		int GetHeight() const { return m_pViewport->getActualHeight(); }
+
+		Ogre::Vector2 Convert3DPointTo2D(const Ogre::Vector3 &point);
+		bool IsInFrontOfCamera(const Ogre::Vector3 &point);
 
 		void AddGameScreen(IGameScreen *gameScreen);
 		void ChangeGameScreen(IGameScreen *gameScreen);
@@ -84,6 +95,9 @@ namespace rcd
 		OgreBites::InputContext m_inputContext;
 		Ogre::RTShader::ShaderGenerator* m_pShaderGenerator; // the Shader generator instance.
 		ShaderGeneratorTechniqueResolverListener* m_pMaterialMgrListener; // shader generator material manager listener.
+		Sprite* m_pSprite;
+		LensFlare* m_pLensFlare;
+		Ogre::ColourValue m_remLensFlareColor;
 
 		float m_elapsedTimeThisFrameInMs;
 		float m_totalTimeMs;

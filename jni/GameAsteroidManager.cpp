@@ -9,6 +9,7 @@
 #include "Game.hpp"
 #include "Player.hpp"
 #include "SmallAsteroid.hpp"
+#include "LensFlare.hpp"
 
 using namespace Ogre;
 
@@ -357,17 +358,17 @@ namespace rcd
 			levelPos = m_currentLevel.GetLength() - 1;
 
 		// Update sun color, also for lighting and lens flare.
-		//TODO: const ColourValue sunColour = ColourHelper::InterpolateColour(ColourValue::White, m_currentLevel.GetSunColour(levelPos), 0.75f);
-		//TODO: m_game.SetLensFlareColour(sunColour);
+		const ColourValue sunColour = ColourHelper::InterpolateColour(ColourValue::White, m_currentLevel.GetSunColour(levelPos), 0.75f);
+		m_game.SetLensFlareColour(sunColour);
 
 		// Set colour to lighting
 		//m_game.SetLightColour(sunColour);
 		m_game.SetLightColour(ColourValue::White);
 
 		// Also update sun position
-		//TODO: const Vector3 sunPos = LensFlare::RotateSun(Radian(Math::PI / 4.0f + m_game.GetPlayer().GetGameTimeMs() / 50000.0f));
-		//TODO: LensFlare::SetOrigin3D(sunPos);
-		//TODO: m_game.SetLightDirection(-sunPos);
+		const Vector3 sunPos = LensFlare::RotateSun(Radian(Math::PI / 4.0f + m_game.GetPlayer().GetGameTimeMs() / 50000.0f));
+		LensFlare::SetOrigin3D(sunPos);
+		m_game.SetLightDirection(-sunPos);
 
 		//
 		// Update asteroids

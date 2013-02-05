@@ -43,6 +43,11 @@ namespace rcd
 		// Attach background to the scene
 		m_pBackgroundNode = m_game.GetSceneManager().getRootSceneNode()->createChildSceneNode("Background");
 		m_pBackgroundNode->attachObject(m_pBackground);
+
+		// Create a main menu panel
+		Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
+		Ogre::Overlay* pOverlay = overlayManager.getByName("MainMenuOverlay");
+		pOverlay->show();
 	}
 
 	void MainMenuScreen::Exit()
