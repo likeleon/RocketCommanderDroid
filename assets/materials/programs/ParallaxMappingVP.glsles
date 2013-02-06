@@ -52,8 +52,8 @@ void main()
 	vec3 lightDir = GetLightDirection(lightPosition, position);
 	vec3 eyeDir = GetEyeDirection(eyePosition, position);
 	
-	oLightDir = normalize(worldToTangentSpace * lightDir);
-	oEyeDir = normalize(worldToTangentSpace * eyeDir);
+	oLightDir = normalize(lightDir * worldToTangentSpace);
+	oEyeDir = normalize(eyeDir * worldToTangentSpace);
 	
 	// Little helper to darken back face areas, looks more realistic on asteroids
 	float x = dot(normalize(normal), lightDir);

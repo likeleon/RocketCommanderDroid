@@ -22,7 +22,7 @@ uniform float shininess;
 void main()
 {
 	// Get height from normal map alpha channel
-	vec2 height = texture2D(heightMap, oUv0).ag;
+	vec2 height = texture2D(heightMap, oUv0).rg;
     
 	// Calculate parallax offset
 	vec3 eyeDir = normalize(oEyeDir);
@@ -45,7 +45,7 @@ void main()
 	// Darken down bump factor on back faces
 	bump = bump * oBackFaceFactor;
 	
-	vec4 ambDiffColor = lightAmbient + bump * lightDiffuse;
-	gl_FragColor.rgb = (diffuseTexture * ambDiffColor + (height.x * 0.5) * bump * spec * lightSpecular * diffuseTexture.a).rgb;
+	vec3 ambDiffColor = (lightAmbient + bump * lightDiffuse).rgb;
+	gl_FragColor.rgb = diffuseTexture.rgb * ambDiffColor + (height.x * 0.5) * bump * spec * lightSpecular.xyz * diffuseTexture.a;
 	gl_FragColor.a = diffuseTexture.a * lightDiffuse.a;
 }
