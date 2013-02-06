@@ -1,5 +1,6 @@
 #include "SpaceCamera.hpp"
 #include "Game.hpp"
+#include "Player.hpp"
 
 using namespace Ogre;
 
@@ -28,7 +29,6 @@ namespace rcd
 		}
 	}
 
-
 	Camera& SpaceCamera::GetCamera()
 	{
 		assert(m_camera);
@@ -53,6 +53,8 @@ namespace rcd
 	{
 		if (m_cameraMode == CameraMode_FreeCamera)
 			HandleFreeCamera();
+		else if (m_cameraMode == CameraMode_InGame)
+			HandlePlayerInput();
 		else // for menu
 			RandomlyRotateAround();
 
@@ -107,6 +109,102 @@ namespace rcd
 		GetCamera().setOrientation(Quaternion(Radian(-m_yawRotation), Vector3::UNIT_Y) *
 			Quaternion(Radian(-m_pitchRotation), Vector3::UNIT_X));
 		GetCamera().setPosition(-m_pos);
+	}
+
+	void SpaceCamera::HandlePlayerInput()
+	{
+		Player &player = m_game.GetPlayer();
+
+		if (player.GetLifeTimeMs() < Player::LifeTimeZoomAndAccelerateMs)
+		{
+			const float speedPercentage = player.GetLifeTimeMs() / (float)Player::LifeTimeZoomAndAccelerateMs;
+
+			player.SetStartingSpeed(speedPercentage * speedPercentage);
+
+			// Aways move forward
+			Translate(-player.GetSpeed() *
+				m_game.GetMoveFactorPerSecond() *
+				player.GetMovementSpeedPerSecond(), MoveDirection_Z);
+
+			if (player.GetGameTimeMs() < 100)
+			{
+				m_yawRotation = Math::PI;
+				m_pitchRotation = 0;
+				m_pos = Vector3::ZERO;
+			}
+		}
+
+		if (player.CanControlRocket())
+		{
+			// Consume some fuel
+			player.SetFuel(player.GetFuel() - m_game.GetMoveFactorPerSecond() / Player::FuelRefillTime);
+
+			float speedScoreFactor = 0.75f * player.GetSpeed();
+			if (player.GetSpeedItemTimeout() > 0)
+				speedScoreFactor *= 2.0f;
+
+			// Increase score
+			if (m_game.GetTotalFrames() % 10 == 0)
+				player.SetScore(player.GetScore() + (int)(speedScoreFactor * m_game.GetElapsedTimeThisFrameInMs()));
+		}
+
+		// Don't allow any movement if still counting down or exploded
+		const float rotationFactor = Player::RotationSpeedPerMouseMovement;
+		if (player.CanControlRocket() == false)
+		{
+			if (player.IsGameOver())
+			{
+				// Just rotate around the rocket.
+				m_yawRotation = m_game.GetTotalTimeMs() / 3592.0f;
+			}
+			else
+			{
+				// TODO
+			}
+
+			return;
+		}
+
+		//
+		// Mouse/keyboard support
+		//
+		const float maxMoveFactor = m_game.GetMoveFactorPerSecond() * player.GetMovementSpeedPerSecond();
+		const float maxSlideFactor = maxMoveFactor * Player::SlideFactor;
+
+		// TODO: Change camera rotation when mouse is moved
+
+		bool consumedAdditionalFuel = false;
+
+		// TODO: Keyboard W/D
+
+		if (player.GetSpeedItemTimeout() > 0)
+		{
+			player.SetSpeedItemTimeout(player.GetSpeedItemTimeout() - m_game.GetElapsedTimeThisFrameInMs());
+			if (player.GetSpeedItemTimeout() < 0)
+			{
+				player.SetSpeedItemTimeout(0);
+				if (player.GetSpeed() > Player::MaxSpeedWithoutItem)
+					player.SetSpeed(Player::MaxSpeedWithoutItem);
+			}
+		}
+
+		// Adjust current speed by the current player speed.
+		const float moveFactor = player.GetSpeed() * maxMoveFactor;
+		const float slideFactor = maxSlideFactor;
+
+		// Always move forward
+		Translate(-moveFactor, MoveDirection_Z);
+
+		// TODO: Slide
+
+		// TODO: Up/down
+
+		if (consumedAdditionalFuel)
+		{
+			player.SetFuel(player.GetFuel() - (m_game.GetMoveFactorPerSecond() / Player::FuelRefillTime) / 2.0f);
+			if (m_game.GetTotalFrames() % 20 == 0)
+				player.SetScore(player.GetScore() + (int)m_game.GetElapsedTimeThisFrameInMs() / 2);
+		}
 	}
 
 	bool SpaceCamera::IsInGame() const

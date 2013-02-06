@@ -2,6 +2,8 @@
 #define _MISSION_SCREEN_HPP_
 
 #include "IGameScreen.hpp"
+#include <OgreOverlay.h>
+#include <OgreTextAreaOverlayElement.h>
 
 namespace rcd
 {
@@ -27,8 +29,17 @@ namespace rcd
 		virtual bool touchCancelled(const OIS::MultiTouchEvent &arg);
 
 	private:
+		void ZoomIntoRocket();
+		void ShowHudContorls();
+		void ShowScreenMessages();
+		void ShowTarget(int levelLength);
+
 		Game& m_game;
 		bool m_quit;
+		float m_rocketEndGameScale;
+
+		Ogre::Overlay* m_pOverlay;
+		Ogre::TextAreaOverlayElement* m_pMessageText;
 	};
 }
 

@@ -76,6 +76,7 @@ namespace rcd
 
 		// Initialize asteroidmanager and use last available level.
 		m_pAsteroidManager = new GameAsteroidManager(*this, m_levels[m_levels.size() - 1]);
+		GetPlayer().SetAsteroidManager(m_pAsteroidManager);
 
 		// Rocket
 		m_pRocket = new Rocket(*m_pSceneMgr);
@@ -536,5 +537,10 @@ namespace rcd
 	{
 		assert(m_pSprite);
 		return *m_pSprite;
+	}
+
+	OIS::MultiTouch& Game::GetMultiTouch()
+	{
+		return m_inputInjector.GetMultiTouch();
 	}
 }

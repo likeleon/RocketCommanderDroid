@@ -52,7 +52,7 @@ namespace rcd
 		const std::string& GetCurrentItemMessage() const { return m_currentItemMessage; }
 		float GetShowHealthWarningTimeoutMs() const { return m_showHealthWarningTimeoutMs; }
 
-		static const int	LifeTimeZoomAndAccelerateMs = 5000;
+		static const int	LifeTimeZoomAndAccelerateMs = 4000;
 		static const float	FuelRefillTime;
 		static const float	SlideFactor;
 		static const float	MaxSpeedWithoutItem;

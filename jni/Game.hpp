@@ -47,6 +47,7 @@ namespace rcd
 		float GetElapsedTimeThisFrameInMs() const;
 		Player& GetPlayer();
 		Sprite& GetSprite();
+		OIS::MultiTouch& GetMultiTouch();
 
 		void SetLensFlareColour(const Ogre::ColourValue &colour) { m_remLensFlareColor = colour; }
 		void SetLightDirection(const Ogre::Vector3 &lightDir);

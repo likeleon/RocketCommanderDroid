@@ -46,6 +46,7 @@ namespace rcd
 
 		void HandleFreeCamera() {}
 		void RandomlyRotateAround();
+		void HandlePlayerInput();
 		void Rotate(RotationAxis axis, float angle);
 		void Translate(float amount, MoveDirections direction);
 		void UpdateCamera();

@@ -15,6 +15,8 @@ namespace rcd
 		void InjectTouchEvent(int action, float x, float y, int pointerId = 0);
 		void SetGameScreen(IGameScreen* pGameScreen);
 
+		OIS::MultiTouch& GetMultiTouch() { return m_touch; }
+
 	private:
 		class AndroidMultiTouch : public OIS::MultiTouch
 		{
