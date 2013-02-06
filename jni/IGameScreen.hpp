@@ -1,9 +1,11 @@
 #ifndef _IGAME_SCREEN_HPP_
 #define _IGAME_SCREEN_HPP_
 
+#include <OISMultiTouch.h>
+
 namespace rcd
 {
-	class IGameScreen
+	class IGameScreen : public OIS::MultiTouchListener
 	{
 	public:
 		virtual ~IGameScreen() {};

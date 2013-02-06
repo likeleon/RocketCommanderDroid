@@ -2,11 +2,12 @@
 #include "Game.hpp"
 #include "SpaceCamera.hpp"
 #include <OgreMaterialManager.h>
+#include "MissionScreen.hpp"
 
 namespace rcd
 {
 	MainMenuScreen::MainMenuScreen(Game &game)
-	: m_game(game), m_resetCamera(true), m_pBackground(NULL)
+	: m_game(game), m_resetCamera(true), m_pBackground(NULL), m_pOverlay(NULL)
 	{
 	}
 
@@ -46,12 +47,14 @@ namespace rcd
 
 		// Create a main menu panel
 		Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
-		Ogre::Overlay* pOverlay = overlayManager.getByName("MainMenuOverlay");
-		pOverlay->show();
+		m_pOverlay = overlayManager.getByName("MainMenuOverlay");
+		m_pOverlay->show();
 	}
 
 	void MainMenuScreen::Exit()
 	{
+		m_pOverlay->hide();
+
 		m_pBackgroundNode->detachAllObjects();
 		assert(m_pBackgroundNode->getParentSceneNode() == m_game.GetSceneManager().getRootSceneNode());
 		m_pBackgroundNode->getParentSceneNode()->removeAndDestroyChild(m_pBackgroundNode->getName());
@@ -59,5 +62,25 @@ namespace rcd
 
 		delete m_pBackground;
 		m_pBackground = NULL;
+	}
+
+	bool MainMenuScreen::touchMoved(const OIS::MultiTouchEvent &arg)
+	{
+		return true;
+	}
+
+	bool MainMenuScreen::touchPressed(const OIS::MultiTouchEvent &arg)
+	{
+		m_game.AddGameScreen(new MissionScreen(m_game, m_game.GetLevel(0)));
+	}
+
+	bool MainMenuScreen::touchReleased(const OIS::MultiTouchEvent &arg)
+	{
+		return true;
+	}
+
+	bool MainMenuScreen::touchCancelled(const OIS::MultiTouchEvent &arg)
+	{
+		return true;
 	}
 }

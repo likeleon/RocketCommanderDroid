@@ -18,9 +18,11 @@ namespace likeleon
 		void deactivate();
 
 		void processAppEvent(int32_t pCommand);
+		int32_t handleInputEvent(AInputEvent* pEvent);
 
 	private:
 		static void callback_event(android_app* pApplication, int32_t pCommand);
+		static int32_t handle_input(android_app* pApplication, AInputEvent* event);
 
 	private:
 		bool m_enabled;

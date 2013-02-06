@@ -7,11 +7,12 @@
 #include "Android/OgreAPKFileSystemArchive.h"
 #include "Android/OgreAPKZipArchive.h"
 #include "Game.hpp"
+#include "AndroidInputInjector.hpp"
 
 namespace rcd
 {
 	RocketCommanderDroid::RocketCommanderDroid(likeleon::Context& context, android_app* pApplication)
-	: m_pApplication(pApplication), m_initialized(false), m_pGame(NULL)
+	: m_pApplication(pApplication), m_initialized(false), m_pGame(NULL), m_pInputInjector(NULL)
 	{
 		likeleon::Log::info("Creating RocketCommanderDroid");
 	}
@@ -133,7 +134,9 @@ namespace rcd
 
 		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Essential");
 
-		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem(), *pAssetMgr);
+		m_pInputInjector = new AndroidInputInjector(pFramework->getRenderWindow());
+
+		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem(), *pAssetMgr, *m_pInputInjector);
 		m_pGame->Initialize();
 	}
 
@@ -146,6 +149,12 @@ namespace rcd
 			m_pGame = NULL;
 		}
 
+		if (m_pInputInjector)
+		{
+			delete m_pInputInjector;
+			m_pInputInjector = NULL;
+		}
+
 		likeleon::OgreAndroidBaseFramework* pFramework = likeleon::OgreAndroidBaseFramework::getSingletonPtr();
 		if (pFramework)
 		{
@@ -153,5 +162,25 @@ namespace rcd
 			if (pRenderWindow)
 				static_cast<Ogre::AndroidEGLWindow*>(pRenderWindow)->_destroyInternalResources();
 		}
+	}
+
+	int RocketCommanderDroid::onInputEvent(AInputEvent* pEvent)
+	{
+		if (m_pInputInjector != NULL)
+		{
+			if (AInputEvent_getType(pEvent) == AINPUT_EVENT_TYPE_MOTION)
+			{
+				int action = (int)(AMOTION_EVENT_ACTION_MASK & AMotionEvent_getAction(pEvent));
+
+				if(action == 0)
+					m_pInputInjector->InjectTouchEvent(2, AMotionEvent_getRawX(pEvent, 0), AMotionEvent_getRawY(pEvent, 0));
+
+				m_pInputInjector->InjectTouchEvent(action, AMotionEvent_getRawX(pEvent, 0), AMotionEvent_getRawY(pEvent, 0));
+			}
+
+			return 1;
+		}
+
+		return 0;
 	}
 }

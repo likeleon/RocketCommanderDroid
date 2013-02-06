@@ -8,6 +8,7 @@
 #include <OgreRTShaderSystem.h>
 #include <vector>
 #include "Level.hpp"
+#include "AndroidInputInjector.hpp"
 
 namespace OgreBites
 {
@@ -28,7 +29,7 @@ namespace rcd
 	class Game : public Ogre::FrameListener
 	{
 	public:
-		Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager);
+		Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager, AndroidInputInjector& inputInjector);
 		~Game();
 
 		void Initialize();
@@ -87,6 +88,7 @@ namespace rcd
 		Ogre::RenderWindow& m_renderWindow;
 		Ogre::OverlaySystem& m_overlaySystem;
 		AAssetManager& m_assetManager;
+		AndroidInputInjector& m_inputInjector;
 		Ogre::SceneManager* m_pSceneMgr;
 		Ogre::Light* m_pLight;
 		SpaceCamera* m_pCamera;

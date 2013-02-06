@@ -8,6 +8,7 @@ namespace likeleon
 	{
 		m_pApplication->userData = this;
 		m_pApplication->onAppCmd = callback_event;
+		m_pApplication->onInputEvent = handle_input;
 	}
 
 	void EventLoop::run(ActivityHandler* pActivityHandler)
@@ -137,9 +138,20 @@ namespace likeleon
 		}
 	}
 
+	int32_t EventLoop::handleInputEvent(AInputEvent* pEvent)
+	{
+		return m_pActivityHandler->onInputEvent(pEvent);
+	}
+
 	void EventLoop::callback_event(android_app* pApplication, int32_t pCommand)
 	{
 		EventLoop& eventLoop = *(EventLoop*)pApplication->userData;
 		eventLoop.processAppEvent(pCommand);
+	}
+
+	int32_t EventLoop::handle_input(android_app* pApplication, AInputEvent* event)
+	{
+		EventLoop& eventLoop = *(EventLoop*)pApplication->userData;
+		return eventLoop.handleInputEvent(event);
 	}
 }

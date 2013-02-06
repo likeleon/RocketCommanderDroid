@@ -2,6 +2,7 @@
 #define _ACTIVITY_HANDLER_HPP_
 
 #include "Types.hpp"
+#include <Android/input.h>
 
 namespace likeleon
 {
@@ -28,6 +29,8 @@ namespace likeleon
 		virtual void onDestroyWindow() {};
 		virtual void onGainFocus() {};
 		virtual void onLostFocus() {};
+
+		virtual int onInputEvent(AInputEvent* pEvent) { return 0; }
 	};
 }
 

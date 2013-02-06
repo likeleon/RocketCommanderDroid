@@ -19,8 +19,8 @@ namespace rcd
 	const Ogre::Real Game::NearPlane = GameAsteroidManager::GetMinViewDepth();
 	const Ogre::Real Game::FarPlane = GameAsteroidManager::GetMaxViewDepth();
 
-	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager) :
-		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager)
+	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager, AndroidInputInjector& inputInjector) :
+		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager), m_inputInjector(inputInjector)
 		, m_pCamera(NULL), m_pViewport(NULL), m_pTrayMgr(NULL), m_pShaderGenerator(NULL), m_pMaterialMgrListener(NULL)
 		, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_totalFrameCount(0), m_inGame(false), m_pSprite(NULL)
 		, m_pLensFlare(NULL), m_remLensFlareColor(Ogre::ColourValue::White), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
@@ -415,6 +415,10 @@ namespace rcd
 		// Space camera
 		GetSpaceCamera().SetInGame(m_inGame);
 
+
+		// OIS
+		m_inputInjector.SetGameScreen(gameScreen);
+
 		// Enter game screen
 		gameScreen->Enter();
 
@@ -435,6 +439,8 @@ namespace rcd
 		assert(!m_gameScreens.empty());
 
 		likeleon::Log::info("Removing game screen %s",	m_gameScreens.top()->GetName());
+
+		m_inputInjector.SetGameScreen(NULL);
 
 		m_gameScreens.top()->Exit();
 		delete m_gameScreens.top();
