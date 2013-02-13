@@ -2011,6 +2011,7 @@ namespace OgreBites
 						break;
 					default:
 						e->setLeft(-(e->getWidth() / 2));
+						break;
 					}
 
 					// prevents some weird texture filtering problems (just some)

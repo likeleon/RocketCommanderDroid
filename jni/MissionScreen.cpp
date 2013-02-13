@@ -12,7 +12,9 @@ using namespace Ogre;
 namespace rcd
 {
 	MissionScreen::MissionScreen(Game& game, const Level& level)
-	: m_game(game), m_quit(false), m_pOverlay(NULL), m_pMessageText(NULL)
+	: m_game(game), m_quit(false), m_pOverlay(NULL)
+	, m_pScoreText(NULL), m_pLifeText(NULL), m_pMessageText(NULL), m_pFuelText(NULL)
+	, m_pHealthText(NULL), m_pSpeedText(NULL), m_pPositionText(NULL), m_pRankText(NULL), m_pTimeText(NULL)
 	{
 		// Set level for asteroid manager
 		m_game.GetAsteroidManager().SetLevel(level);
@@ -31,8 +33,15 @@ namespace rcd
 		Ogre::PanelOverlayElement* pPanel = (Ogre::PanelOverlayElement*)m_pOverlay->getChild("Mission/Panel");
 		assert(pPanel != NULL);
 
+		m_pScoreText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Score");
+		m_pLifeText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Life");
 		m_pMessageText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Message");
-		assert(m_pMessageText != NULL);
+		m_pFuelText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Fuel");
+		m_pHealthText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Health");
+		m_pSpeedText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Speed");
+		m_pPositionText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Position");
+		m_pRankText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Rank");
+		m_pTimeText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Time");
 	}
 
 	void MissionScreen::Exit()
@@ -133,6 +142,29 @@ namespace rcd
 
 	void MissionScreen::ShowHudContorls()
 	{
+		const Player &player = m_game.GetPlayer();
+
+		// Fuel, health and speed
+		assert(m_pFuelText && m_pHealthText && m_pSpeedText && m_pLifeText);
+		m_pFuelText->setCaption("Fuel: " + StringConverter::toString((int)(player.GetFuel() * 100)) + "%");
+		m_pHealthText->setCaption("Health: " + StringConverter::toString((int)(player.GetHealth() * 100)) + "%");
+		m_pSpeedText->setCaption("Speed: " + StringConverter::toString((int)(player.GetSpeed() * 100)));
+		m_pLifeText->setCaption("Life: " + StringConverter::toString(player.GetLifes()));
+
+		// Show level position, score, rank ang game time
+		assert(m_pPositionText && m_pRankText && m_pScoreText && m_pTimeText);
+		int pos = static_cast<int>(101 * m_game.GetCamera().getPosition().z /
+			(m_game.GetAsteroidManager().GetLevel().GetLength() * GameAsteroidManager::SectorDepth));
+		pos = std::min(100, std::max(0, pos));
+		m_pPositionText->setCaption("Pos: " + StringConverter::toString(pos) + "%");
+
+		m_pRankText->setCaption("Rank: #1");
+
+		m_pScoreText->setCaption("Score: " + StringConverter::toString(player.GetScore()));
+
+		m_pTimeText->setCaption("Time: " +
+			StringConverter::toString(static_cast<int>((player.GetGameTimeMs() / 1000) / 60), 2, '0') + ":" +
+			StringConverter::toString(static_cast<int>(player.GetGameTimeMs() / 1000) % 60, 2, '0'));
 	}
 
 	void MissionScreen::ShowScreenMessages()

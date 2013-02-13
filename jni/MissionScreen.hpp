@@ -39,7 +39,15 @@ namespace rcd
 		float m_rocketEndGameScale;
 
 		Ogre::Overlay* m_pOverlay;
+		Ogre::TextAreaOverlayElement* m_pScoreText;
+		Ogre::TextAreaOverlayElement* m_pLifeText;
 		Ogre::TextAreaOverlayElement* m_pMessageText;
+		Ogre::TextAreaOverlayElement* m_pFuelText;
+		Ogre::TextAreaOverlayElement* m_pHealthText;
+		Ogre::TextAreaOverlayElement* m_pSpeedText;
+		Ogre::TextAreaOverlayElement* m_pPositionText;
+		Ogre::TextAreaOverlayElement* m_pRankText;
+		Ogre::TextAreaOverlayElement* m_pTimeText;
 	};
 }
 

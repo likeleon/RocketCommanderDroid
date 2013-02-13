@@ -58,8 +58,8 @@ namespace likeleon
 
 	OgreAndroidBaseFramework* OgreAndroidBaseFramework::getSingletonPtr()
 	{
-		if (msSingleton)
-			return msSingleton;
+		assert(msSingleton);
+		return msSingleton;
 	}
 
 	OgreAndroidBaseFramework::OgreAndroidBaseFramework()

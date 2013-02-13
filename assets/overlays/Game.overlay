@@ -18,7 +18,7 @@ MainMenuOverlay
 	        horz_align center
 	        vert_align center
 	        alignment center
-	        char_height 0.07
+	        char_height 0.05
 	        colour 1 1 1
 	        caption Touch to Start
 		}
@@ -34,6 +34,38 @@ MissionOverlay
 		height 1.0
 		transparent true
 		
+		element TextArea(Mission/Score)
+		{
+			metrics_mode relative
+			left 0.0
+			top 0.0
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align center
+	        vert_align top
+	        alignment center
+	        char_height 0.05
+	        colour 1 1 1
+	        caption Score: ???
+		}
+		
+		element TextArea(Mission/Life)
+		{
+			metrics_mode relative
+			left 0.85
+			top 0.0
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 0.5 0 0.5
+	        caption Life: ???
+		}
+		
 		element TextArea(Mission/Message)
 		{
 			metrics_mode relative
@@ -45,9 +77,105 @@ MissionOverlay
 	        horz_align center
 	        vert_align top
 	        alignment center
-	        char_height 0.07
+	        char_height 0.05
 	        colour 1 1 1
 	        caption Center Screen
+		}
+		
+		element TextArea(Mission/Fuel)
+		{
+			metrics_mode relative
+			left 0.02
+			top 0.85
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 1 1 0
+	        caption Fuel: ???
+		}
+		
+		element TextArea(Mission/Health)
+		{
+			metrics_mode relative
+			left 0.02
+			top 0.9
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 0 1 0
+	        caption Health: ???
+		}
+		
+		element TextArea(Mission/Speed)
+		{
+			metrics_mode relative
+			left 0.02
+			top 0.95
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 0 0.5 1
+	        caption Speed: ???
+		}
+		
+		element TextArea(Mission/Position)
+		{
+			metrics_mode relative
+			left 0.85
+			top 0.85
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 1 1 1
+	        caption Pos: ?%
+		}
+		
+		element TextArea(Mission/Rank)
+		{
+			metrics_mode relative
+			left 0.85
+			top 0.9
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 1 1 1
+	        caption Rank: #?
+		}
+		
+		element TextArea(Mission/Time)
+		{
+			metrics_mode relative
+			left 0.85
+			top 0.95
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align left
+	        vert_align top
+	        alignment left
+	        char_height 0.05
+	        colour 1 1 1
+	        caption Time: ??:??
 		}
 	}
 }
