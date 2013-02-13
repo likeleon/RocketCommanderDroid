@@ -64,6 +64,9 @@ namespace rcd
 		void ChangeGameScreen(IGameScreen *gameScreen);
 		void ExitCurrentGameScreen();
 
+		void EnableCompositor(const Ogre::String& compositorName);
+		void DisableCompositor(const Ogre::String& compositorName);
+
 		static const Ogre::Radian FieldOfView;
 		static const Ogre::Real NearPlane;
 		static const Ogre::Real FarPlane;

@@ -71,7 +71,7 @@ namespace rcd
 
 	bool MainMenuScreen::touchPressed(const OIS::MultiTouchEvent &arg)
 	{
-		m_game.AddGameScreen(new MissionScreen(m_game, m_game.GetLevel(1)));
+		m_game.AddGameScreen(new MissionScreen(m_game, m_game.GetLevel(0)));
 		return true;
 	}
 

@@ -12,6 +12,7 @@
 #include "Player.hpp"
 #include "Sprite.hpp"
 #include "LensFlare.hpp"
+#include "RadialBlurListener.hpp"
 
 namespace rcd
 {
@@ -39,7 +40,7 @@ namespace rcd
 		m_pTrayMgr = new OgreBites::SdkTrayManager("GameControls", &m_renderWindow,	m_inputContext);
 		m_pTrayMgr->showTrays();
 		m_pTrayMgr->hideCursor();
-		//m_pTrayMgr->showFrameStats(OgreBites::TL_BOTTOMLEFT);
+		m_pTrayMgr->showFrameStats(OgreBites::TL_TOPLEFT);
 
 		CreateScene();
 
@@ -68,6 +69,15 @@ namespace rcd
 		// Lens flare
 		m_pLensFlare = new LensFlare(*this, LensFlare::DefaultSunPos);
 
+		//
+		// Compositors
+		//
+		Ogre::CompositorManager &compMgr = Ogre::CompositorManager::getSingleton();
+
+		// Radial blur
+		Ogre::CompositorInstance *radialBlur = compMgr.addCompositor(m_pViewport, "Radial Blur");
+		radialBlur->addListener(new RadialBlurListener(*m_pPlayer));
+
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
 
@@ -75,7 +85,7 @@ namespace rcd
 		m_levels = Level::LoadAllLevels(m_assetManager);
 
 		// Initialize asteroidmanager and use last available level.
-		m_pAsteroidManager = new GameAsteroidManager(*this, m_levels[m_levels.size() - 1]);
+		m_pAsteroidManager = new GameAsteroidManager(*this, m_levels[0]);
 		GetPlayer().SetAsteroidManager(m_pAsteroidManager);
 
 		// Rocket
@@ -311,6 +321,12 @@ namespace rcd
 			m_pTrayMgr = NULL;
 		}
 
+		Ogre::CompositorManager *compMgr = Ogre::CompositorManager::getSingletonPtr();
+		if (compMgr && compMgr->hasCompositorChain(m_pViewport))
+		{
+			compMgr->removeCompositorChain(m_pViewport);
+		}
+
 		if (m_pLensFlare)
 		{
 			delete m_pLensFlare;
@@ -542,5 +558,15 @@ namespace rcd
 	OIS::MultiTouch& Game::GetMultiTouch()
 	{
 		return m_inputInjector.GetMultiTouch();
+	}
+
+	void Game::EnableCompositor(const Ogre::String& compositorName)
+	{
+		Ogre::CompositorManager::getSingleton().setCompositorEnabled(m_pViewport, compositorName, true);
+	}
+
+	void Game::DisableCompositor(const Ogre::String& compositorName)
+	{
+		Ogre::CompositorManager::getSingleton().setCompositorEnabled(m_pViewport, compositorName, false);
 	}
 }
