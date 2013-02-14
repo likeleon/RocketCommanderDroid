@@ -1,6 +1,7 @@
 #include "Player.hpp"
 #include "GameAsteroidManager.hpp"
 #include "Texts.hpp"
+#include "Sound.hpp"
 
 namespace rcd
 {
@@ -108,6 +109,7 @@ namespace rcd
 				if (oldHealth == 1.0f && m_health <= 0.0f)
 				{
 					m_health = 0.1f;
+					m_game.GetSound().PlayExplosionSound();
 				}
 			}
 		}
@@ -141,7 +143,7 @@ namespace rcd
 
 			if (m_lifes > 0)
 			{
-				//TODO: m_game.GetSound().PlayExplosionSound();
+				TODO: m_game.GetSound().PlayExplosionSound();
 				m_lifes--;
 			}
 			else

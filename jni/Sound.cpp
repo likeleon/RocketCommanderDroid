@@ -28,6 +28,7 @@ namespace rcd
 	Sound::Sound(AAssetManager& assetManager)
 	: m_assetManager(assetManager), m_pEngineObj(NULL), m_pEngine(NULL), m_pOutputMixObj(NULL)
 	, m_pBGMPlayerObj(NULL), m_pBGMPlayer(NULL), m_pBGMPlayerSeek(NULL)
+	, m_pPlayerObj(NULL), m_pPlayer(NULL), m_pPlayerQueue(NULL)
 	{
 		likeleon::Log::debug("Creating Sound");
 
@@ -53,6 +54,7 @@ namespace rcd
 		(*m_pEngine)->CreateOutputMix(m_pEngine, &m_pOutputMixObj, lOutputMixIIDCount, lOutputMixIIDs, lOutputMixReqs);
 		(*m_pOutputMixObj)->Realize(m_pOutputMixObj, SL_BOOLEAN_FALSE);
 
+		StartSoundPlayer();
 		LoadSoundBuffers();
 ERROR:
 		assert(!"Error while creating Sound");
@@ -63,8 +65,6 @@ ERROR:
 		likeleon::Log::debug("Destroying Sound");
 
 		StopBGM();
-
-		UnloadSoundBuffers();
 
 		if (m_pOutputMixObj != NULL)
 		{
@@ -78,6 +78,83 @@ ERROR:
 			m_pEngineObj = NULL;
 			m_pEngine = NULL;
 		}
+
+		StopSoundPlayer();
+		UnloadSoundBuffers();
+	}
+
+	bool Sound::StartSoundPlayer()
+	{
+		// Set-up sound audio source.
+		SLDataLocator_AndroidSimpleBufferQueue dataLocatorIn;
+		dataLocatorIn.locatorType =	SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE;
+		// At most one buffer in the queue.
+		dataLocatorIn.numBuffers = 1;
+
+		SLDataFormat_PCM dataFormat;
+		dataFormat.formatType = SL_DATAFORMAT_PCM;
+		dataFormat.numChannels = 1; // Mono sound.
+		dataFormat.samplesPerSec = SL_SAMPLINGRATE_44_1;
+		dataFormat.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
+		dataFormat.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
+		dataFormat.channelMask = SL_SPEAKER_FRONT_CENTER;
+		dataFormat.endianness = SL_BYTEORDER_LITTLEENDIAN;
+
+		SLDataSource dataSource;
+		dataSource.pLocator = &dataLocatorIn;
+		dataSource.pFormat = &dataFormat;
+
+		SLDataLocator_OutputMix dataLocatorOut;
+		dataLocatorOut.locatorType = SL_DATALOCATOR_OUTPUTMIX;
+		dataLocatorOut.outputMix = m_pOutputMixObj;
+
+		SLDataSink dataSink;
+		dataSink.pLocator = &dataLocatorOut;
+		dataSink.pFormat = NULL;
+
+		// Creates the sounds player and retrieves its interfaces.
+		const SLuint32 soundPlayerIIDCount = 2;
+		const SLInterfaceID soundPlayerIIDs[] = { SL_IID_PLAY, SL_IID_BUFFERQUEUE };
+		const SLboolean soundPlayerReqs[] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
+
+		SLresult res = (*m_pEngine)->CreateAudioPlayer(m_pEngine, &m_pPlayerObj, &dataSource, &dataSink, soundPlayerIIDCount, soundPlayerIIDs, soundPlayerReqs);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pPlayerObj)->Realize(m_pPlayerObj, SL_BOOLEAN_FALSE);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pPlayerObj)->GetInterface(m_pPlayerObj, SL_IID_PLAY, &m_pPlayer);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pPlayerObj)->GetInterface(m_pPlayerObj, SL_IID_BUFFERQUEUE, &m_pPlayerQueue);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		// Starts the sound player. Nothing can be heard while the
+		// sound queue remains empty.
+		res = (*m_pPlayer)->SetPlayState(m_pPlayer,	SL_PLAYSTATE_PLAYING);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		return true;
+
+	ERROR:
+		likeleon::Log::error("Error while starting SoundPlayer");
+		return false;
+	}
+
+	void Sound::StopSoundPlayer()
+	{
+		if (m_pPlayerObj != NULL)
+		{
+			(*m_pPlayerObj)->Destroy(m_pPlayerObj);
+			m_pPlayerObj = NULL;
+			m_pPlayer = NULL;
+			m_pPlayerQueue = NULL;
+		}
 	}
 
 	void Sound::LoadSoundBuffers()
@@ -86,7 +163,11 @@ ERROR:
 		{
 			Sounds sounds = static_cast<Sounds>(i);
 
-			std::string filePath = "sounds/" + SoundSettings[sounds].m_fileName;
+			const SoundSetting& setting = SoundSettings[sounds];
+			if (setting.m_looped)
+				continue;
+
+			std::string filePath = "sounds/" + setting.m_fileName;
 			AAsset* m_pAsset = AAssetManager_open(&m_assetManager, filePath.c_str(), AASSET_MODE_UNKNOWN);
 			assert(m_pAsset != NULL);
 
@@ -205,10 +286,6 @@ ERROR:
 		}
 	}
 
-	void Sound::Update()
-	{
-	}
-
 	void Sound::Play(Sounds sound)
 	{
 		const SoundSetting& setting = SoundSettings[sound];
@@ -219,11 +296,40 @@ ERROR:
 		}
 		else
 		{
+			PlaySound(m_soundBuffers[sound]);
 		}
 	}
 
 	void Sound::SetCurrentMusicMode(bool inGame)
 	{
 		Play(inGame? Sound::Sounds_GameMusic : Sound::Sounds_MenuMusic);
+	}
+
+	bool Sound::PlaySound(const Sound::SoundBuffer& soundBuffer)
+	{
+		SLuint32 playerState;
+		(*m_pPlayerObj)->GetState(m_pPlayerObj, &playerState);
+		if (playerState == SL_OBJECT_STATE_REALIZED)
+		{
+			// Removes any sound from the queue.
+			SLresult res = (*m_pPlayerQueue)->Clear(m_pPlayerQueue);
+			if (res != SL_RESULT_SUCCESS)
+				goto ERROR;
+
+			// Plays the new sound.
+			res = (*m_pPlayerQueue)->Enqueue(m_pPlayerQueue, (int16_t*)soundBuffer.m_pBuffer, soundBuffer.m_length);
+			if (res != SL_RESULT_SUCCESS)
+				goto ERROR;
+		}
+
+		return true;
+
+ERROR:
+		return false;
+	}
+
+	void Sound::PlayExplosionSound()
+	{
+		Play(Sound::Sounds_Explosion);
 	}
 }

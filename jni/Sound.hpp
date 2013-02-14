@@ -53,17 +53,20 @@ namespace rcd
 		Sound(AAssetManager& assetManager);
 		~Sound();
 
-		void Update();
 		void Play(Sounds sound);
 		void SetCurrentMusicMode(bool inGame);
+		void PlayExplosionSound();
 
 	private:
 		static const SoundSetting SoundSettings[];
 
+		bool StartSoundPlayer();
+		void StopSoundPlayer();
 		void LoadSoundBuffers();
 		void UnloadSoundBuffers();
 		bool PlayBGM(std::string filePath);
 		void StopBGM();
+		bool PlaySound(const SoundBuffer& soundBuffer);
 
 		AAssetManager& m_assetManager;
 		SLObjectItf m_pEngineObj;
@@ -72,6 +75,9 @@ namespace rcd
 		SLObjectItf m_pBGMPlayerObj;
 		SLPlayItf m_pBGMPlayer;
 		SLSeekItf m_pBGMPlayerSeek;
+		SLObjectItf m_pPlayerObj;
+		SLPlayItf m_pPlayer;
+		SLBufferQueueItf m_pPlayerQueue;
 		SoundBuffer m_soundBuffers[MaxSounds];
 	};
 }

@@ -294,9 +294,6 @@ namespace rcd
 
 		// Increase frame counter
 		m_totalFrameCount++;
-
-		// Update sound engine
-		m_pSound->Update();
 	}
 
 	void Game::Cleanup()
