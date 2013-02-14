@@ -79,7 +79,7 @@ namespace rcd
 		Ogre::CompositorInstance *radialBlur = compMgr.addCompositor(m_pViewport, "Radial Blur");
 		radialBlur->addListener(new RadialBlurListener(*m_pPlayer));
 
-		m_pSound = new Sound();
+		m_pSound = new Sound(m_assetManager);
 
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);

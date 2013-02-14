@@ -4,6 +4,7 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include <Ogre.h>
+#include <android/asset_manager.h>
 
 namespace rcd
 {
@@ -43,7 +44,13 @@ namespace rcd
 			bool			m_looped;
 		};
 
-		Sound();
+		struct SoundBuffer
+		{
+			char* m_pBuffer;
+			size_t m_length;
+		};
+
+		Sound(AAssetManager& assetManager);
 		~Sound();
 
 		void Update();
@@ -53,9 +60,19 @@ namespace rcd
 	private:
 		static const SoundSetting SoundSettings[];
 
+		void LoadSoundBuffers();
+		void UnloadSoundBuffers();
+		bool PlayBGM(std::string filePath);
+		void StopBGM();
+
+		AAssetManager& m_assetManager;
 		SLObjectItf m_pEngineObj;
 		SLEngineItf m_pEngine;
 		SLObjectItf m_pOutputMixObj;
+		SLObjectItf m_pBGMPlayerObj;
+		SLPlayItf m_pBGMPlayer;
+		SLSeekItf m_pBGMPlayerSeek;
+		SoundBuffer m_soundBuffers[MaxSounds];
 	};
 }
 

@@ -25,8 +25,9 @@ namespace rcd
 		Sound::SoundSetting(Sounds_Whosh4,		"Whosh4.wav",		false)
 	};
 
-	Sound::Sound()
-	: m_pEngineObj(NULL), m_pEngine(NULL), m_pOutputMixObj(NULL)
+	Sound::Sound(AAssetManager& assetManager)
+	: m_assetManager(assetManager), m_pEngineObj(NULL), m_pEngine(NULL), m_pOutputMixObj(NULL)
+	, m_pBGMPlayerObj(NULL), m_pBGMPlayer(NULL), m_pBGMPlayerSeek(NULL)
 	{
 		likeleon::Log::debug("Creating Sound");
 
@@ -52,6 +53,7 @@ namespace rcd
 		(*m_pEngine)->CreateOutputMix(m_pEngine, &m_pOutputMixObj, lOutputMixIIDCount, lOutputMixIIDs, lOutputMixReqs);
 		(*m_pOutputMixObj)->Realize(m_pOutputMixObj, SL_BOOLEAN_FALSE);
 
+		LoadSoundBuffers();
 ERROR:
 		assert(!"Error while creating Sound");
 	}
@@ -59,6 +61,10 @@ ERROR:
 	Sound::~Sound()
 	{
 		likeleon::Log::debug("Destroying Sound");
+
+		StopBGM();
+
+		UnloadSoundBuffers();
 
 		if (m_pOutputMixObj != NULL)
 		{
@@ -74,12 +80,146 @@ ERROR:
 		}
 	}
 
+	void Sound::LoadSoundBuffers()
+	{
+		for (int i = 0; i < MaxSounds; ++i)
+		{
+			Sounds sounds = static_cast<Sounds>(i);
+
+			std::string filePath = "sounds/" + SoundSettings[sounds].m_fileName;
+			AAsset* m_pAsset = AAssetManager_open(&m_assetManager, filePath.c_str(), AASSET_MODE_UNKNOWN);
+			assert(m_pAsset != NULL);
+
+			SoundBuffer& soundBuffer = m_soundBuffers[sounds];
+			soundBuffer.m_length = AAsset_getLength(m_pAsset);
+			soundBuffer.m_pBuffer = new char[soundBuffer.m_length];
+			int res = AAsset_read(m_pAsset, soundBuffer.m_pBuffer, soundBuffer.m_length);
+			assert(res >= 0);
+
+			AAsset_close(m_pAsset);
+		}
+	}
+
+	void Sound::UnloadSoundBuffers()
+	{
+		for (int i = 0; i < MaxSounds; ++i)
+		{
+			Sounds sounds = static_cast<Sounds>(i);
+			delete m_soundBuffers[sounds].m_pBuffer;
+			m_soundBuffers[sounds].m_pBuffer = NULL;
+			m_soundBuffers[sounds].m_length = 0;
+		}
+	}
+
+	bool Sound::PlayBGM(std::string filePath)
+	{
+		AAsset* m_pAsset = AAssetManager_open(&m_assetManager, filePath.c_str(), AASSET_MODE_UNKNOWN);
+		assert(m_pAsset != NULL);
+
+		struct ResourceDescriptor
+		{
+			int m_descriptor;
+			off_t m_start;
+			off_t m_length;
+		};
+
+		ResourceDescriptor descriptor;
+		descriptor.m_descriptor = AAsset_openFileDescriptor(m_pAsset, &descriptor.m_start, &descriptor.m_length);
+		assert(descriptor.m_descriptor >= 0);
+
+		SLDataLocator_AndroidFD dataLocatorIn;
+		dataLocatorIn.locatorType = SL_DATALOCATOR_ANDROIDFD;
+		dataLocatorIn.fd = descriptor.m_descriptor;
+		dataLocatorIn.offset = descriptor.m_start;
+		dataLocatorIn.length = descriptor.m_length;
+
+		SLDataFormat_MIME dataFormat;
+		dataFormat.formatType = SL_DATAFORMAT_MIME;
+		dataFormat.mimeType = NULL;
+		dataFormat.containerType = SL_CONTAINERTYPE_UNSPECIFIED;
+
+		SLDataSource dataSource;
+		dataSource.pLocator = &dataLocatorIn;
+		dataSource.pFormat  = &dataFormat;
+
+		SLDataLocator_OutputMix dataLocatorOut;
+		dataLocatorOut.locatorType = SL_DATALOCATOR_OUTPUTMIX;
+		dataLocatorOut.outputMix   = m_pOutputMixObj;
+
+		SLDataSink dataSink;
+		dataSink.pLocator = &dataLocatorOut;
+		dataSink.pFormat  = NULL;
+
+		// Creates BGM player and retrieves its interfaces.
+		const SLuint32 BGMPlayerIIDCount = 2;
+		const SLInterfaceID BGMPlayerIIDs[] = { SL_IID_PLAY, SL_IID_SEEK };
+		const SLboolean BGMPlayerReqs[] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
+
+		SLresult res = (*m_pEngine)->CreateAudioPlayer(m_pEngine, &m_pBGMPlayerObj, &dataSource, &dataSink, BGMPlayerIIDCount, BGMPlayerIIDs, BGMPlayerReqs);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pBGMPlayerObj)->Realize(m_pBGMPlayerObj, SL_BOOLEAN_FALSE);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pBGMPlayerObj)->GetInterface(m_pBGMPlayerObj, SL_IID_PLAY, &m_pBGMPlayer);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pBGMPlayerObj)->GetInterface(m_pBGMPlayerObj, SL_IID_SEEK, &m_pBGMPlayerSeek);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		// Enables looping and starts playing.
+		res = (*m_pBGMPlayerSeek)->SetLoop(m_pBGMPlayerSeek, SL_BOOLEAN_TRUE, 0, SL_TIME_UNKNOWN);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		res = (*m_pBGMPlayer)->SetPlayState(m_pBGMPlayer, SL_PLAYSTATE_PLAYING);
+		if (res != SL_RESULT_SUCCESS)
+			goto ERROR;
+
+		AAsset_close(m_pAsset);
+
+ERROR:
+		return false;
+	}
+
+	void Sound::StopBGM()
+	{
+		if (m_pBGMPlayer != NULL)
+		{
+			SLuint32 BGMPlayerState = 0;
+			(*m_pBGMPlayerObj)->GetState(m_pBGMPlayerObj, &BGMPlayerState);
+
+			if (BGMPlayerState == SL_OBJECT_STATE_REALIZED)
+			{
+				(*m_pBGMPlayer)->SetPlayState(m_pBGMPlayer, SL_PLAYSTATE_PAUSED);
+
+				(*m_pBGMPlayerObj)->Destroy(m_pBGMPlayerObj);
+				m_pBGMPlayerObj = NULL;
+				m_pBGMPlayer = NULL;
+				m_pBGMPlayerSeek = NULL;
+			}
+		}
+	}
+
 	void Sound::Update()
 	{
 	}
 
 	void Sound::Play(Sounds sound)
 	{
+		const SoundSetting& setting = SoundSettings[sound];
+		if (setting.m_looped)
+		{
+			StopBGM();
+			PlayBGM(std::string("sounds/") + setting.m_fileName);
+		}
+		else
+		{
+		}
 	}
 
 	void Sound::SetCurrentMusicMode(bool inGame)
