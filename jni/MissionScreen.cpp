@@ -25,6 +25,8 @@ namespace rcd
 
 	void MissionScreen::Enter()
 	{
+		m_game.GetCamera().setFOVy(Game::InGameFieldOfView);
+
 		//m_game.EnableCompositor("Radial Blur");
 
 		Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
@@ -95,6 +97,7 @@ namespace rcd
 		else if (player.GetExplosionTimeoutMs() >= 0)
 		{
 			player.SetExplosionTimeoutMs(-1);
+			m_game.GetCamera().setFOVy(Game::InGameFieldOfView);
 		}
 		return true;
 	}

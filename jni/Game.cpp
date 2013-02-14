@@ -17,7 +17,8 @@
 
 namespace rcd
 {
-	const Ogre::Radian Game::FieldOfView = Ogre::Radian(Ogre::Math::PI / 1.8f);
+	const Ogre::Radian Game::DefaultFieldOfView = Ogre::Radian(Ogre::Math::PI / 2.5f);
+	const Ogre::Radian Game::InGameFieldOfView = Ogre::Radian(Ogre::Math::PI / 1.8f);
 	const Ogre::Real Game::NearPlane = GameAsteroidManager::GetMinViewDepth();
 	const Ogre::Real Game::FarPlane = GameAsteroidManager::GetMaxViewDepth();
 
@@ -112,7 +113,7 @@ namespace rcd
 
 		// Space camera
 		m_pCamera = new SpaceCamera(*this, Ogre::Vector3(0, 0, -5));
-		GetCamera().setFOVy(FieldOfView);
+		GetCamera().setFOVy(DefaultFieldOfView);
 		GetCamera().setNearClipDistance(NearPlane);
 		GetCamera().setFarClipDistance(FarPlane);
 		GetCamera().setPosition(Ogre::Vector3(0, 0, 0));

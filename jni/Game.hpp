@@ -69,7 +69,8 @@ namespace rcd
 		void EnableCompositor(const Ogre::String& compositorName);
 		void DisableCompositor(const Ogre::String& compositorName);
 
-		static const Ogre::Radian FieldOfView;
+		static const Ogre::Radian DefaultFieldOfView;
+		static const Ogre::Radian InGameFieldOfView;
 		static const Ogre::Real NearPlane;
 		static const Ogre::Real FarPlane;
 

@@ -233,6 +233,8 @@ namespace rcd
 
 	void Player::SetGameOverAndUploadHighscore()
 	{
+		m_game.GetCamera().setFOVy(Game::DefaultFieldOfView);
+
 		m_lifes = 0;
 		m_gameOver = true;
 		m_speed = 0;

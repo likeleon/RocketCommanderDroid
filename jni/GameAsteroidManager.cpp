@@ -399,7 +399,7 @@ namespace rcd
 
 	Radian GameAsteroidManager::GetViewableFieldOfView() const
 	{
-		return Game::FieldOfView * 0.75f;
+		return m_game.GetCamera().getFOVy() * 0.75f;
 	}
 
 	void GameAsteroidManager::HandleSectorPhysics(int checkX, int checkZ, int cameraSectorPosX, int cameraSectorPosZ)
