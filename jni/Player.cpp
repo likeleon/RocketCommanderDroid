@@ -109,7 +109,7 @@ namespace rcd
 				if (oldHealth == 1.0f && m_health <= 0.0f)
 				{
 					m_health = 0.1f;
-					m_game.GetSound().PlayExplosionSound();
+					m_game.GetSound().Play(Sound::Sounds_Explosion);
 				}
 			}
 		}
@@ -143,7 +143,7 @@ namespace rcd
 
 			if (m_lifes > 0)
 			{
-				TODO: m_game.GetSound().PlayExplosionSound();
+				TODO: m_game.GetSound().Play(Sound::Sounds_Explosion);
 				m_lifes--;
 			}
 			else
@@ -153,7 +153,7 @@ namespace rcd
 				m_explosionTimeoutMs3 = MaxExplosionTimeoutMs * 2.1f;
 				SetGameOverAndUploadHighscore();
 				//TODO: m_game.GetSound().StopRocketMotorSound();
-				//TODO: m_game.GetSound().PlayDefeatSound();
+				m_game.GetSound().Play(Sound::Sounds_Defeat);
 			}
 
 			m_speed = MinSpeedWithoutItem;
@@ -183,7 +183,7 @@ namespace rcd
 
 			SetGameOverAndUploadHighscore();
 			//TODO: m_game.GetSound().StopRocketMotorSound();
-			//TODO: m_game.GetSound().PlayVictorySound();
+			m_game.GetSound().Play(Sound::Sounds_Victory);
 		}
 	}
 
@@ -289,7 +289,7 @@ namespace rcd
 		m_lastCollectedItem = itemType;
 
 		// Play item sound
-		//TODO: m_game.GetSound().PlayItemSound(itemType);
+		m_game.GetSound().PlayItemSound(itemType);
 
 		m_score += 2500;
 

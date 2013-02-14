@@ -1,5 +1,6 @@
 #include "Sound.hpp"
 #include "Log.hpp"
+#include "RandomHelper.hpp"
 
 namespace rcd
 {
@@ -328,8 +329,22 @@ ERROR:
 		return false;
 	}
 
-	void Sound::PlayExplosionSound()
+	void Sound::PlayItemSound(Item::ItemTypes itemType)
 	{
-		Play(Sound::Sounds_Explosion);
+		Play(itemType == Item::ItemType_Fuel? Sound::Sounds_Fuel :
+			itemType == Item::ItemType_Health? Sound::Sounds_Health :
+			itemType == Item::ItemType_ExtraLife? Sound::Sounds_ExtraLife :
+			itemType == Item::ItemType_Speed? Sound::Sounds_Speed :
+			Sound::Sounds_Bomb);
+	}
+
+	void Sound::PlayWhosh()
+	{
+		assert(m_soundMgr);
+
+		const Sounds whoshType = static_cast<Sounds>(static_cast<int>(Sounds_Whosh1) +
+			RandomHelper::GetRandomInt(0, Sounds_Whosh4 - Sounds_Whosh1));
+
+		Play(whoshType);
 	}
 }

@@ -41,7 +41,7 @@ namespace rcd
 		m_pTrayMgr = new OgreBites::SdkTrayManager("GameControls", &m_renderWindow,	m_inputContext);
 		m_pTrayMgr->showTrays();
 		m_pTrayMgr->hideCursor();
-		m_pTrayMgr->showFrameStats(OgreBites::TL_TOPLEFT);
+		//m_pTrayMgr->showFrameStats(OgreBites::TL_TOPLEFT);
 
 		CreateScene();
 

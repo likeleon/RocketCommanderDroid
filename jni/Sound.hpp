@@ -5,6 +5,7 @@
 #include <SLES/OpenSLES_Android.h>
 #include <Ogre.h>
 #include <android/asset_manager.h>
+#include "Item.hpp"
 
 namespace rcd
 {
@@ -55,7 +56,8 @@ namespace rcd
 
 		void Play(Sounds sound);
 		void SetCurrentMusicMode(bool inGame);
-		void PlayExplosionSound();
+		void PlayItemSound(Item::ItemTypes itemType);
+		void PlayWhosh();
 
 	private:
 		static const SoundSetting SoundSettings[];

@@ -10,6 +10,7 @@
 #include "Player.hpp"
 #include "SmallAsteroid.hpp"
 #include "LensFlare.hpp"
+#include "Sound.hpp"
 
 using namespace Ogre;
 
@@ -652,7 +653,7 @@ namespace rcd
 
 						// Play side hit sound
 						// Play only once (asteroid is killed after that)
-						//TODO: m_game.GetSound().Play(Sound::Sounds_SideHit);
+						m_game.GetSound().Play(Sound::Sounds_SideHit);
 
 						// Remeber to show hit direction effect
 						Vector3 distVector = asteroid.GetPosition() - camPos;
@@ -716,11 +717,9 @@ namespace rcd
 			} // for (int x)
 		} // for (int z)
 
-		// Max. check every 10 frames, else we have to many whosh sounds
-		// TODO
-		/*if (remToPlayWhoshVolume > 0 &&
-			m_game.GetTotalFrames() % 5 == 0)
-			m_game.GetSound().PlayWhosh(remToPlayWhoshVolume);*/
+		/*// Max. check every 10 frames, else we have to many whosh sounds
+		if (remToPlayWhoshVolume > 0 && m_game.GetTotalFrames() % 5 == 0)
+			m_game.GetSound().PlayWhosh();*/
 		return damageFactor;
 	}
 
