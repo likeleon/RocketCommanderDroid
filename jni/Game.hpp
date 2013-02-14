@@ -25,6 +25,7 @@ namespace rcd
 	class Player;
 	class Sprite;
 	class LensFlare;
+	class Sound;
 
 	class Game : public Ogre::FrameListener
 	{
@@ -48,6 +49,7 @@ namespace rcd
 		Player& GetPlayer();
 		Sprite& GetSprite();
 		OIS::MultiTouch& GetMultiTouch();
+		Sound& GetSound();
 
 		void SetLensFlareColour(const Ogre::ColourValue &colour) { m_remLensFlareColor = colour; }
 		void SetLightDirection(const Ogre::Vector3 &lightDir);
@@ -104,6 +106,7 @@ namespace rcd
 		Sprite* m_pSprite;
 		LensFlare* m_pLensFlare;
 		Ogre::ColourValue m_remLensFlareColor;
+		Sound* m_pSound;
 
 		float m_elapsedTimeThisFrameInMs;
 		float m_totalTimeMs;

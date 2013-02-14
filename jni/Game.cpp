@@ -13,6 +13,7 @@
 #include "Sprite.hpp"
 #include "LensFlare.hpp"
 #include "RadialBlurListener.hpp"
+#include "Sound.hpp"
 
 namespace rcd
 {
@@ -24,7 +25,7 @@ namespace rcd
 		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager), m_inputInjector(inputInjector)
 		, m_pCamera(NULL), m_pViewport(NULL), m_pTrayMgr(NULL), m_pShaderGenerator(NULL), m_pMaterialMgrListener(NULL)
 		, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_totalFrameCount(0), m_inGame(false), m_pSprite(NULL)
-		, m_pLensFlare(NULL), m_remLensFlareColor(Ogre::ColourValue::White), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
+		, m_pLensFlare(NULL), m_pSound(NULL), m_remLensFlareColor(Ogre::ColourValue::White), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
 	{
 	}
 
@@ -77,6 +78,8 @@ namespace rcd
 		// Radial blur
 		Ogre::CompositorInstance *radialBlur = compMgr.addCompositor(m_pViewport, "Radial Blur");
 		radialBlur->addListener(new RadialBlurListener(*m_pPlayer));
+
+		m_pSound = new Sound();
 
 		// Skybox
 		m_pSceneMgr->setSkyBox(true, "RocketCommander/SpaceSkyBox", GetCamera().getFarClipDistance() * 0.5f, true);
@@ -291,6 +294,9 @@ namespace rcd
 
 		// Increase frame counter
 		m_totalFrameCount++;
+
+		// Update sound engine
+		m_pSound->Update();
 	}
 
 	void Game::Cleanup()
@@ -319,6 +325,12 @@ namespace rcd
 		{
 			delete m_pTrayMgr;
 			m_pTrayMgr = NULL;
+		}
+
+		if (m_pSound)
+		{
+			delete m_pSound;
+			m_pSound = NULL;
 		}
 
 		Ogre::CompositorManager *compMgr = Ogre::CompositorManager::getSingletonPtr();
@@ -432,6 +444,9 @@ namespace rcd
 		// Space camera
 		GetSpaceCamera().SetInGame(m_inGame);
 
+
+		// Sound
+		GetSound().SetCurrentMusicMode(m_inGame);
 
 		// OIS
 		m_inputInjector.SetGameScreen(gameScreen);
@@ -568,5 +583,11 @@ namespace rcd
 	void Game::DisableCompositor(const Ogre::String& compositorName)
 	{
 		Ogre::CompositorManager::getSingleton().setCompositorEnabled(m_pViewport, compositorName, false);
+	}
+
+	Sound& Game::GetSound()
+	{
+		assert(m_pSound);
+		return *m_pSound;
 	}
 }

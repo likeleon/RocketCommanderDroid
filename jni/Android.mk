@@ -21,7 +21,7 @@ LOCAL_CFLAGS += -fexceptions -frtti -x c++ -D___ANDROID___ -DANDROID -DZZIP_OMIT
 LS_CPP=$(subst $(1)/,,$(wildcard $(1)/*.cpp))
 LOCAL_SRC_FILES := $(call LS_CPP,$(LOCAL_PATH))
 	
-LOCAL_LDLIBS	:= -landroid -lc -lm -ldl -llog -lEGL -lGLESv2
+LOCAL_LDLIBS	:= -landroid -lc -lm -ldl -llog -lEGL -lGLESv2 -lOpenSLES
 LOCAL_LDLIBS	+= -L$(LOCAL_PATH)/prebuild/ogre
 LOCAL_LDLIBS	+= -lPlugin_ParticleFXStatic -lPlugin_OctreeSceneManagerStatic -lRenderSystem_GLES2Static -lOgreRTShaderSystemStatic -lOgreOverlayStatic -lOgreMainStatic
 LOCAL_LDLIBS	+= -lzzip -lz -lFreeImage -lfreetype -lOIS

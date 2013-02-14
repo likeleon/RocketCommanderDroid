@@ -25,7 +25,7 @@ namespace rcd
 
 	void MissionScreen::Enter()
 	{
-		m_game.EnableCompositor("Radial Blur");
+		//m_game.EnableCompositor("Radial Blur");
 
 		Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
 		m_pOverlay = overlayManager.getByName("MissionOverlay");
@@ -50,7 +50,7 @@ namespace rcd
 	{
 		m_pOverlay->hide();
 
-		m_game.DisableCompositor("Radial Blur");
+		//m_game.DisableCompositor("Radial Blur");
 	}
 
 	void MissionScreen::Run()
