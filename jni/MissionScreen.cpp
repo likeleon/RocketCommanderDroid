@@ -177,6 +177,7 @@ namespace rcd
 		/*likeleon::SensorHandler& sensorHandler = m_game.GetSensorHandler();
 		m_pSensorText->setCaption(StringConverter::toString(sensorHandler.GetHorizontal()) + "," +
 				StringConverter::toString(sensorHandler.GetVertical()));*/
+		m_pSensorText->setCaption("");
 	}
 
 	void MissionScreen::ShowScreenMessages()
