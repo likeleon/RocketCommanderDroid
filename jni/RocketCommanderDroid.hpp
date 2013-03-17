@@ -36,6 +36,7 @@ namespace rcd
 		bool m_initialized;
 		Game* m_pGame;
 		AndroidInputInjector* m_pInputInjector;
+		likeleon::SensorHandler* m_pSensorHandler;
 	};
 }
 

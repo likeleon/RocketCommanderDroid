@@ -14,7 +14,7 @@ namespace rcd
 	MissionScreen::MissionScreen(Game& game, const Level& level)
 	: m_game(game), m_quit(false), m_pOverlay(NULL)
 	, m_pScoreText(NULL), m_pLifeText(NULL), m_pMessageText(NULL), m_pFuelText(NULL)
-	, m_pHealthText(NULL), m_pSpeedText(NULL), m_pPositionText(NULL), m_pRankText(NULL), m_pTimeText(NULL)
+	, m_pHealthText(NULL), m_pSpeedText(NULL), m_pPositionText(NULL), m_pRankText(NULL), m_pTimeText(NULL), m_pSensorText(NULL)
 	{
 		// Set level for asteroid manager
 		m_game.GetAsteroidManager().SetLevel(level);
@@ -46,6 +46,7 @@ namespace rcd
 		m_pPositionText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Position");
 		m_pRankText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Rank");
 		m_pTimeText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Time");
+		m_pSensorText = (Ogre::TextAreaOverlayElement *)pPanel->getChild("Mission/Sensor");
 	}
 
 	void MissionScreen::Exit()
@@ -172,6 +173,10 @@ namespace rcd
 		m_pTimeText->setCaption("Time: " +
 			StringConverter::toString(static_cast<int>((player.GetGameTimeMs() / 1000) / 60), 2, '0') + ":" +
 			StringConverter::toString(static_cast<int>(player.GetGameTimeMs() / 1000) % 60, 2, '0'));
+
+		likeleon::SensorHandler& sensorHandler = m_game.GetSensorHandler();
+		m_pSensorText->setCaption(StringConverter::toString(sensorHandler.GetHorizontal()) + "," +
+				StringConverter::toString(sensorHandler.GetVertical()));
 	}
 
 	void MissionScreen::ShowScreenMessages()

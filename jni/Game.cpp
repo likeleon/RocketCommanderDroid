@@ -22,11 +22,11 @@ namespace rcd
 	const Ogre::Real Game::NearPlane = GameAsteroidManager::GetMinViewDepth();
 	const Ogre::Real Game::FarPlane = GameAsteroidManager::GetMaxViewDepth();
 
-	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager, AndroidInputInjector& inputInjector) :
+	Game::Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager, AndroidInputInjector& inputInjector, likeleon::SensorHandler& sensorHandler) :
 		m_ogreRoot(ogreRoot), m_renderWindow(renderWindow), m_pSceneMgr(NULL), m_overlaySystem(overlaySystem), m_assetManager(assetManager), m_inputInjector(inputInjector)
 		, m_pCamera(NULL), m_pViewport(NULL), m_pTrayMgr(NULL), m_pShaderGenerator(NULL), m_pMaterialMgrListener(NULL)
 		, m_elapsedTimeThisFrameInMs(0.001f), m_totalTimeMs(0.0f), m_totalFrameCount(0), m_inGame(false), m_pSprite(NULL)
-		, m_pLensFlare(NULL), m_pSound(NULL), m_remLensFlareColor(Ogre::ColourValue::White), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL)
+		, m_pLensFlare(NULL), m_pSound(NULL), m_remLensFlareColor(Ogre::ColourValue::White), m_pRocket(NULL), m_pAsteroidManager(NULL), m_pPlayer(NULL), m_sensorHandler(sensorHandler)
 	{
 	}
 
@@ -587,5 +587,10 @@ namespace rcd
 	{
 		assert(m_pSound);
 		return *m_pSound;
+	}
+
+	likeleon::SensorHandler& Game::GetSensorHandler()
+	{
+		return m_sensorHandler;
 	}
 }

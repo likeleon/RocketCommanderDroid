@@ -48,6 +48,7 @@ namespace rcd
 		Ogre::TextAreaOverlayElement* m_pPositionText;
 		Ogre::TextAreaOverlayElement* m_pRankText;
 		Ogre::TextAreaOverlayElement* m_pTimeText;
+		Ogre::TextAreaOverlayElement* m_pSensorText;
 	};
 }
 

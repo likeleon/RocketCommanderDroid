@@ -9,6 +9,7 @@
 #include <vector>
 #include "Level.hpp"
 #include "AndroidInputInjector.hpp"
+#include "SensorHandler.hpp"
 
 namespace OgreBites
 {
@@ -30,7 +31,7 @@ namespace rcd
 	class Game : public Ogre::FrameListener
 	{
 	public:
-		Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager, AndroidInputInjector& inputInjector);
+		Game(Ogre::Root& ogreRoot, Ogre::RenderWindow& renderWindow, Ogre::OverlaySystem& overlaySystem, AAssetManager& assetManager, AndroidInputInjector& inputInjector, likeleon::SensorHandler& sensorHandler);
 		~Game();
 
 		void Initialize();
@@ -50,6 +51,7 @@ namespace rcd
 		Sprite& GetSprite();
 		OIS::MultiTouch& GetMultiTouch();
 		Sound& GetSound();
+		likeleon::SensorHandler& GetSensorHandler();
 
 		void SetLensFlareColour(const Ogre::ColourValue &colour) { m_remLensFlareColor = colour; }
 		void SetLightDirection(const Ogre::Vector3 &lightDir);
@@ -120,6 +122,7 @@ namespace rcd
 		std::vector<Level> m_levels;
 		GameAsteroidManager* m_pAsteroidManager;
 		Player* m_pPlayer;
+		likeleon::SensorHandler& m_sensorHandler;
 	};
 }
 

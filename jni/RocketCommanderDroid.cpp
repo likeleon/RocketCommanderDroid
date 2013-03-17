@@ -8,11 +8,12 @@
 #include "Android/OgreAPKZipArchive.h"
 #include "Game.hpp"
 #include "AndroidInputInjector.hpp"
+#include "SensorHandler.hpp"
 
 namespace rcd
 {
 	RocketCommanderDroid::RocketCommanderDroid(likeleon::Context& context, android_app* pApplication)
-	: m_pApplication(pApplication), m_initialized(false), m_pGame(NULL), m_pInputInjector(NULL)
+	: m_pApplication(pApplication), m_initialized(false), m_pGame(NULL), m_pInputInjector(NULL), m_pSensorHandler(context.m_pSensorHandler)
 	{
 		likeleon::Log::info("Creating RocketCommanderDroid");
 	}
@@ -51,12 +52,17 @@ namespace rcd
 	likeleon::status RocketCommanderDroid::onActivate()
 	{
 		likeleon::Log::info("Activating RocketCommanderDroid");
+
+		if (m_pSensorHandler->start() != likeleon::STATUS_OK)
+			return likeleon::STATUS_KO;
+
 		return likeleon::STATUS_OK;
 	}
 
 	void RocketCommanderDroid::onDeactivate()
 	{
 		likeleon::Log::info("Deactivating RocketCommanderDroid");
+		m_pSensorHandler->stop();
 	}
 
 	likeleon::status RocketCommanderDroid::onStep()
@@ -136,7 +142,7 @@ namespace rcd
 
 		m_pInputInjector = new AndroidInputInjector(pFramework->getRenderWindow());
 
-		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem(), *pAssetMgr, *m_pInputInjector);
+		m_pGame = new Game(*pFramework->getOgreRoot(), *pFramework->getRenderWindow(), *pFramework->getOverlaySystem(), *pAssetMgr, *m_pInputInjector, *m_pSensorHandler);
 		m_pGame->Initialize();
 	}
 

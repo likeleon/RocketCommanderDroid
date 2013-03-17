@@ -4,20 +4,22 @@
 namespace likeleon
 {
 	EventLoop::EventLoop(android_app* pApplication)
-	: m_enabled(false), m_quit(false), m_pApplication(pApplication), m_pActivityHandler(NULL)
+	: m_enabled(false), m_quit(false), m_pApplication(pApplication), m_pActivityHandler(NULL),
+	  m_pSensorManager(NULL), m_pSensorEventQueue(NULL)
 	{
 		m_pApplication->userData = this;
 		m_pApplication->onAppCmd = callback_event;
 		m_pApplication->onInputEvent = handle_input;
 	}
 
-	void EventLoop::run(ActivityHandler* pActivityHandler)
+	void EventLoop::run(ActivityHandler* pActivityHandler, SensorHandler* pSensorHandler)
 	{
 		int32_t events;
 		android_poll_source* source;
 
 		app_dummy();
 		m_pActivityHandler = pActivityHandler;
+		m_pSensorHandler = pSensorHandler;
 
 		m_pActivityHandler->onInit();
 
@@ -56,15 +58,28 @@ namespace likeleon
 	{
 		if (!m_enabled && m_pApplication != NULL)
 		{
+			m_sensorPollSource.id = LOOPER_ID_USER;
+			m_sensorPollSource.app = m_pApplication;
+			m_sensorPollSource.process = callback_sensor;
+			m_pSensorManager = ASensorManager_getInstance();
+			if (m_pSensorManager != NULL)
+			{
+				m_pSensorEventQueue = ASensorManager_createEventQueue(m_pSensorManager, m_pApplication->looper, LOOPER_ID_USER, NULL, &m_sensorPollSource);
+				if (m_pSensorEventQueue == NULL)
+					goto ERROR;
+			}
+
 			m_quit = false;
 			m_enabled = true;
 			if (m_pActivityHandler->onActivate() != STATUS_OK)
-			{
-				m_quit = true;
-				deactivate();
-				ANativeActivity_finish(m_pApplication->activity);
-			}
+				goto ERROR;
 		}
+		return;
+
+	ERROR:
+		m_quit = true;
+		deactivate();
+		ANativeActivity_finish(m_pApplication->activity);
 	}
 
 	void EventLoop::deactivate()
@@ -73,6 +88,13 @@ namespace likeleon
 		{
 			m_pActivityHandler->onDeactivate();
 			m_enabled = false;
+
+			if (m_pSensorEventQueue != NULL)
+			{
+				ASensorManager_destroyEventQueue(m_pSensorManager, m_pSensorEventQueue);
+				m_pSensorEventQueue = NULL;
+			}
+			m_pSensorManager = NULL;
 		}
 	}
 
@@ -143,6 +165,20 @@ namespace likeleon
 		return m_pActivityHandler->onInputEvent(pEvent);
 	}
 
+	void EventLoop::processSensorEvent()
+	{
+		ASensorEvent lEvent;
+		while (ASensorEventQueue_getEvents(m_pSensorEventQueue, &lEvent, 1) > 0)
+		{
+			switch (lEvent.type)
+			{
+			case ASENSOR_TYPE_ACCELEROMETER:
+				m_pSensorHandler->onAccelerometerEvent(&lEvent);
+				break;
+			}
+		}
+	}
+
 	void EventLoop::callback_event(android_app* pApplication, int32_t pCommand)
 	{
 		EventLoop& eventLoop = *(EventLoop*)pApplication->userData;
@@ -153,5 +189,11 @@ namespace likeleon
 	{
 		EventLoop& eventLoop = *(EventLoop*)pApplication->userData;
 		return eventLoop.handleInputEvent(event);
+	}
+
+	void EventLoop::callback_sensor(android_app* pApplication, android_poll_source* pSource)
+	{
+		EventLoop& lEventLoop = *(EventLoop*)pApplication->userData;
+		lEventLoop.processSensorEvent();
 	}
 }

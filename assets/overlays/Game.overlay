@@ -33,7 +33,7 @@ MissionOverlay
 		width 1.0
 		height 1.0
 		transparent true
-		
+				
 		element TextArea(Mission/Score)
 		{
 			metrics_mode relative
@@ -176,6 +176,22 @@ MissionOverlay
 	        char_height 0.05
 	        colour 1 1 1
 	        caption Time: ??:??
+		}
+		
+		element TextArea(Mission/Sensor)
+		{
+			metrics_mode relative
+			left 0.0
+			top 0.95
+			width 1.0
+			height 0.05
+	        font_name SdkTrays/Value
+	        horz_align center
+	        vert_align top
+	        alignment center
+	        char_height 0.05
+	        colour 1 1 1
+	        caption 0.0, 0.0
 		}
 	}
 }
