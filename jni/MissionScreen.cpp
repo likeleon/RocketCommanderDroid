@@ -174,9 +174,9 @@ namespace rcd
 			StringConverter::toString(static_cast<int>((player.GetGameTimeMs() / 1000) / 60), 2, '0') + ":" +
 			StringConverter::toString(static_cast<int>(player.GetGameTimeMs() / 1000) % 60, 2, '0'));
 
-		likeleon::SensorHandler& sensorHandler = m_game.GetSensorHandler();
+		/*likeleon::SensorHandler& sensorHandler = m_game.GetSensorHandler();
 		m_pSensorText->setCaption(StringConverter::toString(sensorHandler.GetHorizontal()) + "," +
-				StringConverter::toString(sensorHandler.GetVertical()));
+				StringConverter::toString(sensorHandler.GetVertical()));*/
 	}
 
 	void MissionScreen::ShowScreenMessages()

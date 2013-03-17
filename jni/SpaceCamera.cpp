@@ -195,9 +195,10 @@ namespace rcd
 		// Always move forward
 		Translate(-moveFactor, MoveDirection_Z);
 
-		// TODO: Slide
-
-		// TODO: Up/down
+		// Slide & Up/down
+		likeleon::SensorHandler& sensorHandler = m_game.GetSensorHandler();
+		Translate(sensorHandler.GetHorizontal() * -slideFactor, MoveDirection_X);
+		Translate(sensorHandler.GetVertical() * -slideFactor, MoveDirection_Y);
 
 		if (consumedAdditionalFuel)
 		{

@@ -23,6 +23,9 @@ namespace likeleon
 			{
 				if (ASensorEventQueue_enableSensor(m_eventLoop.m_pSensorEventQueue, m_pSensor) < 0)
 					goto ERROR;
+
+				if (ASensorEventQueue_setEventRate(m_eventLoop.m_pSensorEventQueue, m_pSensor, ASensor_getMinDelay(m_pSensor)) < 0)
+					goto ERROR;
 			}
 		}
 		else

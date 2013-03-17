@@ -12,7 +12,7 @@ namespace rcd
 	const float Player::MaxSpeedWithItem = 1.0f;
 	const float Player::HurtFactorIfFuelIsEmpty = 10.0f;
 	const float Player::FuelRefillTime = 40.0f;
-	const float Player::SlideFactor = 1.0f / 5.5f;
+	const float Player::SlideFactor = 1.0f / 1.5f;
 	const float Player::RotationSpeedPerMouseMovement = 0.0015f;
 
 	Player::Player(Game &game)
